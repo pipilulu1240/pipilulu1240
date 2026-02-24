@@ -1000,6 +1000,16 @@ pattern="^[A-Za-z][12][0-9]{8}$"
                                             <p class="text-theme-sub mt-1">首次來本館住宿之寶貝，需 <b class="text-theme-text">安親2~3個小時</b> 進行安親評估，確保寶貝沒有攻擊性及不會因為不熟悉環境而發生不適應之情況，安親與住宿需不同天；並另外提供寶貝的 <b class="text-theme-text">寵物手冊正本及疫苗證明</b> (幼犬需打滿三劑疫苗，成犬需出示一年內狂犬證明) 拍照即可，並且皆須完成驅蟲，如有發現蟲體，則不提供住宿並且將另外收取環境清潔費用。</p>
                                         </div>
                                     </div>
+                                    <div class="flex gap-4 items-start border-t border-gray-100 pt-4">
+    <span class="w-6 h-6 rounded-full bg-theme-primary text-white flex-shrink-0 flex items-center justify-center font-bold">D</span>
+    <div class="flex-1">
+        <p class="font-bold text-theme-dark">關於社交</p>
+
+            <p class="text-theme-sub text-[11px] leading-relaxed flex items-start gap-2">
+                本館重視每隻狗狗的心理隱私，不主動安排集體玩耍。我們營造的是安靜、互不干擾的休息環境。若您的寶貝需要大量奔跑或高強度社交，建議參考其他主打遊樂場性質的機構。
+            </p>
+    </div>
+</div>
                                 </div>
                             </div>
                         </details>
@@ -2361,7 +2371,7 @@ let refreshing = false;
 
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js?v=5").then((reg) => {
+        navigator.serviceWorker.register("sw.js?v=6").then((reg) => {
 
             // 如果已經有 waiting 的新版
             if (reg.waiting) {
