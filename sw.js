@@ -1,5 +1,7 @@
 // sw.js
-const CACHE_NAME = "v10"; 
+const VERSION = new URL(self.location).searchParams.get("v") || "v1";
+const CACHE_NAME = `pwa-${VERSION}`;
+
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -7,7 +9,7 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (event) => {
-    self.skipWaiting(); // 強制跳過等待，準備更新
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
     );
@@ -27,9 +29,33 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+    if (event.request.method !== 'GET') return;
+
+    // ✅ HTML 用「網路優先」，避免舊版卡住
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request)
+                .then((res) => {
+                    const copy = res.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy));
+                    return res;
+                })
+                .catch(() => caches.match('/index.html'))
+        );
+        return;
+    }
+
+    // 其他資源用「快取優先」
     event.respondWith(
         caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
+            return (
+                response ||
+                fetch(event.request).then((res) => {
+                    const copy = res.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+                    return res;
+                })
+            );
         })
     );
 });
