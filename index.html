@@ -108,6 +108,24 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        /* ✅ 簽名板防跳動 (LINE 內建瀏覽器) */
+body.lock-scroll {
+    position: fixed;
+    width: 100%;
+    overflow: hidden;
+}
+
+#modal-signature {
+    position: fixed;
+    inset: 0;
+    height: 100dvh; /* 用動態視窗高度，避免地址列收縮跳動 */
+}
+
+#canvas-container,
+#sig-canvas {
+    touch-action: none;
+    overscroll-behavior: contain;
+}
 </style>
 </head>
 
@@ -2132,6 +2150,20 @@ let signatureTime = null;
         // 4. 簽名板功能
         let canvas, ctx, isDrawing = false;
         let signatureInitialized = false;
+        let savedScrollY = 0;
+let preventScrollHandler = null;
+
+function lockBodyScroll() {
+    savedScrollY = window.scrollY || document.documentElement.scrollTop;
+    document.body.classList.add("lock-scroll");
+    document.body.style.top = `-${savedScrollY}px`;
+}
+
+function unlockBodyScroll() {
+    document.body.classList.remove("lock-scroll");
+    document.body.style.top = "";
+    window.scrollTo(0, savedScrollY);
+}
 // ✅ Toast 功能
 function showToast(message, type = "info") {
     const toast = document.getElementById("toast");
@@ -2158,14 +2190,25 @@ function openSignatureModal() {
     const modal = document.getElementById('modal-signature');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-    
+
+    // ✅ 鎖住背景捲動
+    lockBodyScroll();
+
+    // ✅ 防止任何 touch 滑動
+    preventScrollHandler = function(e) {
+        if (e.target.closest('#modal-signature')) {
+            e.preventDefault();
+        }
+    };
+    document.addEventListener('touchmove', preventScrollHandler, { passive: false });
+
     // 初始化 Canvas
     canvas = document.getElementById('sig-canvas');
     ctx = canvas.getContext('2d');
-    
+
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
-    
+
     // ✅ 只綁定一次事件，避免越畫越粗
     if (!signatureInitialized) {
         canvas.addEventListener('mousedown', startDraw);
@@ -2178,11 +2221,20 @@ function openSignatureModal() {
     }
 }
 
-        function closeSignatureModal() {
-            const modal = document.getElementById('modal-signature');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
+function closeSignatureModal() {
+    const modal = document.getElementById('modal-signature');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+
+    // ✅ 解鎖捲動
+    unlockBodyScroll();
+
+    // ✅ 移除 touchmove 防滑
+    if (preventScrollHandler) {
+        document.removeEventListener('touchmove', preventScrollHandler);
+        preventScrollHandler = null;
+    }
+}
 
         function resizeCanvas() {
             const container = document.getElementById('canvas-container');
@@ -2384,7 +2436,7 @@ let refreshing = false;
 
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js?v=6").then((reg) => {
+        navigator.serviceWorker.register("sw.js?v=7").then((reg) => {
 
             // 如果已經有 waiting 的新版
             if (reg.waiting) {

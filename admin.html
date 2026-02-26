@@ -1084,7 +1084,7 @@ let refreshing = false;
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw-admin.js?v=2").then((reg) => {
+    navigator.serviceWorker.register("sw-admin.js?v=3").then((reg) => {
 
       // ✅ 若已經有 waiting 的新版
       if (reg.waiting) {
