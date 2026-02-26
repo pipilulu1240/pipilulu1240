@@ -519,35 +519,40 @@ pattern="^[A-Za-z][12][0-9]{8}$"
     </div>
 </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-theme-sub mb-2 ml-1">毛孩性情*</label>
-                            <div class="space-y-2">
-                                <label class="flex items-start gap-3 p-3 bg-white/60 border border-theme-sub/20 rounded-xl cursor-pointer hover:bg-theme-primary/5 transition has-[:checked]:bg-theme-primary/10 has-[:checked]:border-theme-primary">
+<div>
+    <label class="block text-xs font-bold text-theme-sub mb-2 ml-1">毛孩性情*</label>
+    <div class="space-y-2">
+        <label class="flex items-start gap-3 p-3 bg-white/60 border border-theme-sub/20 rounded-xl cursor-pointer hover:bg-theme-primary/5 transition has-[:checked]:bg-theme-primary/10 has-[:checked]:border-theme-primary">
 <input type="radio" name="temperament" value="天使寶寶" class="mt-1 accent-theme-dark">
 
-                                    <div>
-                                        <span class="block text-sm font-bold text-theme-text">😇 天使寶寶</span>
-                                        <span class="block text-xs text-theme-sub mt-0.5">個性溫和，無任何攻擊紀錄，也不怕生。</span>
-                                    </div>
-                                </label>
-                                <label class="flex items-start gap-3 p-3 bg-white/60 border border-theme-sub/20 rounded-xl cursor-pointer hover:bg-theme-primary/5 transition has-[:checked]:bg-theme-primary/10 has-[:checked]:border-theme-primary">
+            <div>
+                <span class="block text-sm font-bold text-theme-text">😇 天使寶寶</span>
+                <span class="block text-xs text-theme-sub mt-0.5">個性溫和，無任何攻擊紀錄，也不怕生。</span>
+            </div>
+        </label>
+        <label class="flex items-start gap-3 p-3 bg-white/60 border border-theme-sub/20 rounded-xl cursor-pointer hover:bg-theme-primary/5 transition has-[:checked]:bg-theme-primary/10 has-[:checked]:border-theme-primary">
 <input type="radio" name="temperament" value="有點緊張" class="mt-1 accent-theme-dark">
 
-                                    <div>
-                                        <span class="block text-sm font-bold text-theme-text">😓 有點緊張</span>
-                                        <span class="block text-xs text-theme-sub mt-0.5">膽小怕生，可能會低吼或閃躲，但未曾咬人。</span>
-                                    </div>
-                                </label>
-                                <label class="flex items-start gap-3 p-3 bg-white/60 border border-theme-sub/20 rounded-xl cursor-pointer hover:bg-theme-primary/5 transition has-[:checked]:bg-theme-primary/10 has-[:checked]:border-theme-primary">
+            <div>
+                <span class="block text-sm font-bold text-theme-text">😓 有點緊張</span>
+                <span class="block text-xs text-theme-sub mt-0.5">膽小怕生，可能會低吼或閃躲，但未曾咬人。</span>
+            </div>
+        </label>
+        <label class="flex items-start gap-3 p-3 bg-white/60 border border-theme-sub/20 rounded-xl cursor-pointer hover:bg-theme-primary/5 transition has-[:checked]:bg-theme-primary/10 has-[:checked]:border-theme-primary">
 <input type="radio" name="temperament" value="敏感寶寶" class="mt-1 accent-theme-dark">
-                                    <div>
-                                        <span class="block text-sm font-bold text-theme-text">🤬 敏感寶寶</span>
-                                        <span class="block text-xs text-theme-sub mt-0.5">特定部位敏感或曾有攻擊紀錄 (請務必告知)。</span>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
+            <div>
+                <span class="block text-sm font-bold text-theme-text">🤬 敏感寶寶</span>
+                <span class="block text-xs text-theme-sub mt-0.5">特定部位敏感或曾有攻擊紀錄 (請務必告知)。</span>
+            </div>
+        </label>
+    </div>
+</div>
 
+<!-- ✅ 新增：毛孩性情補充（僅美容顯示） -->
+<div id="temperament-note-wrap">
+    <label class="block text-xs font-bold text-theme-sub mb-2 ml-1">寶貝有需要特別注意的地方都可以告知哦！</label>
+<textarea id="temperament_note" class="w-full bg-white/60 border border-theme-sub/30 rounded-xl px-4 py-3 text-theme-text focus:outline-none focus:border-theme-primary transition h-24" placeholder="例如：特別膽小、或是哪裡不能摸..."></textarea>
+</div>
                         <div>
                             <label class="block text-xs font-bold text-theme-sub mb-2 ml-1">過往病史*</label>
                             <div class="flex gap-2 mb-3">
@@ -1447,10 +1452,10 @@ function fillOwnerFields(data) {
 
 function fillPetFields(data) {
     const map = normalizeData(data);
-    ["pet_type","pet_name","pet_breed","pet_weight","pet_birthday","pet_age",
-     "gender","neuter","microchip_status","microchip_number",
-     "aggression","dog_social","temperament","history_check","history_detail","specified_hospital"
-    ].forEach(k => setField(k, map[k]));
+["pet_type","pet_name","pet_breed","pet_weight","pet_birthday","pet_age",
+ "gender","neuter","microchip_status","microchip_number",
+ "aggression","dog_social","temperament","temperament_note","history_check","history_detail","specified_hospital"
+].forEach(k => setField(k, map[k]));
 }
 
 function fillBoardingFields(data) {
@@ -1672,13 +1677,14 @@ if (!form.checkValidity()) {
             delete data.boarding_note;
         }
 
-        if (currentType === "boarding") {
-            delete data.service;
-            delete data.upgrade_service;
-            delete data.matting_suspected;
-            delete data.matting_choice;
-            delete data.other_service_text;
-        }
+if (currentType === "boarding") {
+    delete data.service;
+    delete data.upgrade_service;
+    delete data.matting_suspected;
+    delete data.matting_choice;
+    delete data.other_service_text;
+    delete data.temperament_note;
+}
         if (!data.specified_hospital || !data.specified_hospital.trim()) {
             data.specified_hospital = "依店家指定";
         }
@@ -1946,7 +1952,7 @@ if (checkin && checkout) {
             const sectionBoarding = document.getElementById('section-boarding');
             const termsLabel = document.getElementById('terms-label');
             const termsBtnText = document.getElementById('terms-btn-text');
-
+            const temperamentNote = document.getElementById('temperament-note-wrap');
             window.scrollTo({top: 0, behavior: 'smooth'});
 
             if (page === 'form') {
@@ -1963,6 +1969,7 @@ if (checkin && checkout) {
                     sectionBoarding.classList.add('hidden');
                     termsLabel.innerText = "【犬、貓美容契約條款】";
                     termsBtnText.innerText = "點擊閱讀美容條款";
+                    if (temperamentNote) temperamentNote.classList.remove('hidden');
                 } else if (type === 'boarding') {
                     formTitle.innerText = "寵物住宿契約書";
                     formIcon.setAttribute('data-lucide', 'home');
@@ -1970,6 +1977,7 @@ if (checkin && checkout) {
                     sectionBoarding.classList.remove('hidden');
                     termsLabel.innerText = "【寵物住宿契約條款】";
                     termsBtnText.innerText = "點擊閱讀住宿條款";
+                    if (temperamentNote) temperamentNote.classList.add('hidden');
                 }
                 lucide.createIcons();
 
@@ -2596,6 +2604,7 @@ h1{margin:0;font-size:22px;font-weight:800;letter-spacing:2px;}
       <div>攻擊性：${data.aggression || "-"}</div>
       <div>與狗相處：${data.dog_social || "-"}</div>
       <div>性情評估：${data.temperament || "-"}</div>
+      <div>性情補充：${data.temperament_note || "-"}</div>
       <div>病史：${data.history_check || "-"}</div>
     </div>
     <div class="small" style="margin-top:6px;">病史詳述：${data.history_detail || "無"}<br>指定醫院：${data.specified_hospital || "依店家指定"}</div>
