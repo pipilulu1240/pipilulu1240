@@ -2430,13 +2430,13 @@ function showTerms() {
             }, 300);
         }
 /* ====== PWA 更新處理（前台 index）====== */
-const PWA_SW_VERSION = "shiba-studio-v2024-10-01"; // 必須跟 sw.js 的 CACHE_NAME 一樣
+const PWA_SW_VERSION = "v10"; // 必須跟 sw.js 的 CACHE_NAME 一樣
 let newWorker = null;
 let refreshing = false;
 
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js?v=7").then((reg) => {
+        navigator.serviceWorker.register("sw.js?v=8").then((reg) => {
 
             // 如果已經有 waiting 的新版
             if (reg.waiting) {
