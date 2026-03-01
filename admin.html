@@ -60,7 +60,7 @@
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useEffect, useMemo, useRef } = React;
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
 const supabaseUrl = "https://vmjczgepqlefbsfarogk.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtamN6Z2VwcWxlZmJzZmFyb2drIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODI2OTIsImV4cCI6MjA4NTk1ODY5Mn0.7C2vDebLan_VzQnC9QSkE2WAwXHKDpN3onydHFUceiY";
@@ -278,7 +278,39 @@ const selectRole = (roleEmail) => {
     </div>
   );
 };
+const OrderFieldContext = React.createContext({
+  editMode: false,
+  editData: {},
+  updateField: () => {}
+});
 
+const Field = ({ label, value, fieldKey, editable=false, type="text", textarea=false }) => {
+  const { editMode, editData, updateField } = React.useContext(OrderFieldContext);
+
+  return (
+    <div>
+      <span className="text-gray-400 text-xs">{label}</span>
+      {editable && editMode ? (
+        textarea ? (
+          <textarea
+            className="admin-input text-sm h-20"
+            value={editData?.[fieldKey] || ""}
+            onChange={(e)=>updateField(fieldKey, e.target.value)}
+          />
+        ) : (
+          <input
+            className="admin-input text-sm"
+            type={type}
+            value={editData?.[fieldKey] || ""}
+            onChange={(e)=>updateField(fieldKey, e.target.value)}
+          />
+        )
+      ) : (
+        <div className="font-bold break-all">{value || "-"}</div>
+      )}
+    </div>
+  );
+};
 const OrderModal = ({ order, onClose, onUpdateStatus, onUpdateNote, onUpdateData, onDelete, canEdit, canUpdateStatus, isAdmin }) => {
   if (!order) return null;
 const raw = parseData(order);
@@ -325,34 +357,12 @@ const handleSaveEdit = async () => {
   if (ok) setEditMode(false);
 };
 
-const Field = ({ label, value, fieldKey, editable=false, type="text", textarea=false }) => (
-  <div>
-    <span className="text-gray-400 text-xs">{label}</span>
-    {editable && editMode ? (
-      textarea ? (
-        <textarea
-          className="admin-input text-sm h-20"
-          value={editData[fieldKey] || ""}
-          onChange={(e)=>updateField(fieldKey, e.target.value)}
-        />
-      ) : (
-        <input
-          className="admin-input text-sm"
-          type={type}
-          value={editData[fieldKey] || ""}
-          onChange={(e)=>updateField(fieldKey, e.target.value)}
-        />
-      )
-    ) : (
-      <div className="font-bold break-all">{value || "-"}</div>
-    )}
-  </div>
-);
 
   const toStr = (v) =>
     Array.isArray(v) ? v.filter(Boolean).join("、") : v || "-";
 
-  return (
+return (
+  <OrderFieldContext.Provider value={{ editMode, editData, updateField }}>
     <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         
@@ -573,7 +583,8 @@ onClick={async ()=>{
         </div>
       </div>
     </div>
-  );
+  </OrderFieldContext.Provider>
+);
 };
 const calcAgeFromBirthday = (birthday) => {
   if (!birthday) return "";
@@ -817,7 +828,7 @@ const Dashboard = ({ user }) => {
     return true;
   };
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     let query = supabase
       .from("contracts")
@@ -826,13 +837,60 @@ const Dashboard = ({ user }) => {
 
     if (activeTab === "grooming") query = query.eq("type", "grooming");
     if (activeTab === "boarding") query = query.in("type", ["boarding", "daycare"]);
+    // calendar / crm 不加 type 篩選，抓全部
 
-    const { data } = await query;
-    setOrders(data || []);
+    const { data, error } = await query;
+    if (error) {
+      console.error("fetchOrders error:", error);
+    } else {
+      setOrders(data || []);
+    }
     setLoading(false);
-  };
+  }, [activeTab]);
 
-  useEffect(() => { fetchOrders(); }, [activeTab]);
+  // 初次 + 切分頁
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  // 回到前景、視窗聚焦、自動輪詢
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") fetchOrders();
+    };
+    const onFocus = () => fetchOrders();
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onFocus);
+
+    const timer = setInterval(() => {
+      fetchOrders();
+    }, 30000); // 每 30 秒自動更新一次
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onFocus);
+      clearInterval(timer);
+    };
+  }, [fetchOrders]);
+
+  // Supabase 即時更新（新增/修改/刪除都會刷新）
+  useEffect(() => {
+    const channel = supabase
+      .channel("contracts-live")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "contracts" },
+        () => {
+          fetchOrders();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchOrders]);
 
   const updateStatus = async (id, status) => {
     await supabase.from("contracts").update({ status }).eq("id", id);
@@ -1078,13 +1136,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 <script>
 /* ====== PWA 更新處理（後台 admin）====== */
-const ADMIN_SW_VERSION = "admin-cache-v2024-10-01"; // 必須跟 sw-admin.js 的 CACHE_NAME 一樣
+const ADMIN_SW_VERSION = "admin-cache-v2026-03-01";
 let newWorker = null;
 let refreshing = false;
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw-admin.js?v=3").then((reg) => {
+    navigator.serviceWorker.register("sw-admin.js?v=4").then((reg) => {
 
       // ✅ 若已經有 waiting 的新版
       if (reg.waiting) {
