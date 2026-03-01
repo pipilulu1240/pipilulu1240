@@ -810,7 +810,7 @@ const Dashboard = ({ user }) => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showPwdModal, setShowPwdModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-
+const [syncing, setSyncing] = useState(false);
   const verifyAdminPassword = async () => {
     if (!isAdmin) return false;
     const pwd = prompt("請輸入管理員密碼");
@@ -827,7 +827,14 @@ const Dashboard = ({ user }) => {
     }
     return true;
   };
-
+const manualSync = async () => {
+  setSyncing(true);
+  try {
+    await fetchOrders();
+  } finally {
+    setTimeout(() => setSyncing(false), 500); // 顯示一下狀態
+  }
+};
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     let query = supabase
@@ -987,7 +994,16 @@ const Dashboard = ({ user }) => {
             <button onClick={()=>setShowPwdModal(true)} className="w-10 h-10 bg-white border rounded-full flex items-center justify-center text-bear-dark">
               <Icon name="key" size={16} />
             </button>
-          )}
+          )}<button
+  onClick={manualSync}
+  disabled={syncing}
+  className={`w-10 h-10 rounded-full flex items-center justify-center border ${
+    syncing ? "bg-gray-100 text-gray-300" : "bg-white text-bear-dark"
+  }`}
+  title="立即同步"
+>
+  <Icon name={syncing ? "loader-circle" : "refresh-cw"} size={16} />
+</button>
           <button onClick={() => supabase.auth.signOut()} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400">
             <Icon name="log-out" />
           </button>
