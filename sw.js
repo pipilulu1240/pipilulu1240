@@ -1,71 +1,89 @@
-// sw.js
-const VERSION = new URL(self.location).searchParams.get("v") || "v1";
-const CACHE_NAME = `pwa-${VERSION}`;
-
-const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    'https://vmjczgepqlefbsfarogk.supabase.co/storage/v1/object/public/logo/logo__2_-removebg-preview.png'
+const CACHE_NAME = "site-cache-v13";
+const APP_SHELL = [
+  "./",
+  "./index.html",
+  "./admin.html",
+  "./manifest.json",
+  "./manifest-admin.json"
 ];
 
-self.addEventListener('install', (event) => {
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys.map((key) => {
+        if (key !== CACHE_NAME) return caches.delete(key);
+      })
+    );
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
-    );
+  }
 });
 
-self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        Promise.all([
-            caches.keys().then((keys) => {
-                return Promise.all(
-                    keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-                );
-            }),
-            self.clients.claim()
-        ])
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  if (req.method !== "GET") return;
+
+  const url = new URL(req.url);
+
+  const isSupabaseApi =
+    url.hostname.includes("supabase.co") &&
+    (
+      url.pathname.startsWith("/rest/v1/") ||
+      url.pathname.startsWith("/auth/v1/") ||
+      url.pathname.startsWith("/storage/v1/") ||
+      url.pathname.startsWith("/realtime/v1/")
     );
-});
 
-self.addEventListener('fetch', (event) => {
-    if (event.request.method !== 'GET') return;
-
-    // ✅ HTML 用「網路優先」，避免舊版卡住
-    if (event.request.mode === 'navigate') {
-        event.respondWith(
-            fetch(event.request)
-                .then((res) => {
-                    const copy = res.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy));
-                    return res;
-                })
-                .catch(() => caches.match('/index.html'))
-        );
-        return;
-    }
-
-    // 其他資源用「快取優先」
+  const isAdminResource =
+    url.pathname.includes("/admin.html") ||
+    url.pathname.includes("/manifest-admin.json") ||
+    url.pathname.includes("/sw-admin.js");
+  // Supabase 與 admin 相關頁面：網路優先、禁止快取舊資料
+  if (isSupabaseApi || isAdminResource) {
     event.respondWith(
-        caches.match(event.request).then((response) => {
-            return (
-                response ||
-                fetch(event.request).then((res) => {
-                    const copy = res.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-                    return res;
-                })
-            );
-        })
+      fetch(req, { cache: "no-store" }).catch(() => caches.match(req))
     );
-});
+    return;
+  }
 
-// 監聽來自頁面的更新指令
-self.addEventListener('message', (event) => {
-    if (
-        event.data === 'SKIP_WAITING' ||
-        (event.data && event.data.type === 'SKIP_WAITING')
-    ) {
-        self.skipWaiting();
-    }
+  // HTML 導航：Network First
+  if (req.mode === "navigate") {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return res;
+        })
+        .catch(() => caches.match(req).then((cached) => cached || caches.match("./index.html")))
+    );
+    return;
+  }
+
+  // 其他靜態：Stale While Revalidate
+  event.respondWith(
+    caches.match(req).then((cached) => {
+      const fetchPromise = fetch(req)
+        .then((networkRes) => {
+          const copy = networkRes.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return networkRes;
+        })
+        .catch(() => cached);
+      return cached || fetchPromise;
+    })
+  );
 });
