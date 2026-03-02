@@ -1,71 +1,83 @@
-const CACHE_NAME = "admin-cache-v2026-03-01";
-const ASSETS_TO_CACHE = [
-  "./",
-  "./admin.html",
-  "./manifest-admin.json"
-  // 建議不要把外站資源放 install 預快取，避免安裝失敗或髒快取
+const CACHE_NAME = 'hugbear-admin-v20260303';
+const APP_SHELL = [
+  './',
+  './admin.html',
+  './manifest-admin.json',
+  './logo.png'
 ];
 
-self.addEventListener("install", (event) => {
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
   );
-  // 仍維持：由前端按「立即更新」再 skipWaiting
+  self.skipWaiting();
 });
 
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((k) => k !== CACHE_NAME)
-          .map((k) => caches.delete(k))
-      )
-    )
-  );
-  self.clients.claim();
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys.map((key) => {
+        if (key !== CACHE_NAME) return caches.delete(key);
+      })
+    );
+    await self.clients.claim();
+  })());
 });
 
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") {
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
 
-self.addEventListener("fetch", (event) => {
+self.addEventListener('fetch', (event) => {
   const req = event.request;
-  if (req.method !== "GET") return;
-
   const url = new URL(req.url);
 
-  // ✅ 關鍵：跨網域請求（Supabase API / CDN）不要由 SW 快取，直接走網路
-  if (url.origin !== self.location.origin) {
+  // 只攔 GET
+  if (req.method !== 'GET') return;
+
+  // Supabase 相關 API 一律走網路，不快取
+  const isSupabaseApi =
+    url.hostname.includes('supabase.co') &&
+    (
+      url.pathname.startsWith('/rest/v1/') ||
+      url.pathname.startsWith('/auth/v1/') ||
+      url.pathname.startsWith('/storage/v1/') ||
+      url.pathname.startsWith('/realtime/v1/')
+    );
+
+  if (isSupabaseApi) {
+    event.respondWith(fetch(req, { cache: 'no-store' }).catch(() => caches.match(req)));
     return;
   }
 
-  // HTML 導航：網路優先，避免吃到舊版頁面
-  if (req.mode === "navigate") {
+  // 導航頁面：Network First
+  if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => caches.match(req))
+        .catch(() => caches.match(req).then((cached) => cached || caches.match('./admin.html')))
     );
     return;
   }
 
-  // 站內靜態資源：快取優先
+  // 其他靜態資源：Stale-While-Revalidate
   event.respondWith(
     caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req).then((res) => {
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
-        return res;
-      });
+      const fetchPromise = fetch(req)
+        .then((networkRes) => {
+          const copy = networkRes.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return networkRes;
+        })
+        .catch(() => cached);
+      return cached || fetchPromise;
     })
   );
 });

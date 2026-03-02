@@ -64,8 +64,30 @@ const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
 const supabaseUrl = "https://vmjczgepqlefbsfarogk.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtamN6Z2VwcWxlZmJzZmFyb2drIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODI2OTIsImV4cCI6MjA4NTk1ODY5Mn0.7C2vDebLan_VzQnC9QSkE2WAwXHKDpN3onydHFUceiY";
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
+  global: {
+    fetch: (url, options = {}) => {
+      return fetch(url, {
+        ...options,
+        cache: "no-store",
+        headers: {
+          ...(options.headers || {}),
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0"
+        }
+      });
+    }
+  },
+  realtime: {
+    params: { eventsPerSecond: 10 }
+  }
+});
 const ADMIN_EMAIL = "pipilulu1240@gmail.com";
 const STAFF_EMAIL = "staff@pipilulu.com";
 const toArr = (v) => (Array.isArray(v) ? v : v ? [v] : []);
@@ -811,6 +833,43 @@ const Dashboard = ({ user }) => {
   const [showPwdModal, setShowPwdModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
 const [syncing, setSyncing] = useState(false);
+const fetchSeqRef = useRef(0);
+const mountedRef = useRef(true);
+const channelRef = useRef(null);
+useEffect(() => {
+  return () => {
+    mountedRef.current = false;
+  };
+}, []);
+
+const fetchOrders = useCallback(async () => {
+  const seq = ++fetchSeqRef.current;
+  setLoading(true);
+
+  let query = supabase
+    .from("contracts")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (activeTab === "grooming") query = query.eq("type", "grooming");
+  if (activeTab === "boarding") query = query.in("type", ["boarding", "daycare"]);
+  // calendar / crm 不加 type 篩選，抓全部
+
+  const { data, error } = await query;
+
+  if (!mountedRef.current || seq !== fetchSeqRef.current) return;
+
+  if (error) {
+    console.error("fetchOrders error:", error);
+  } else {
+    setOrders(data || []);
+  }
+  setLoading(false);
+}, [activeTab]);
+
+useEffect(() => {
+  fetchOrders();
+}, [fetchOrders]);
   const verifyAdminPassword = async () => {
     if (!isAdmin) return false;
     const pwd = prompt("請輸入管理員密碼");
@@ -835,69 +894,65 @@ const manualSync = async () => {
     setTimeout(() => setSyncing(false), 500); // 顯示一下狀態
   }
 };
-  const fetchOrders = useCallback(async () => {
-    setLoading(true);
-    let query = supabase
-      .from("contracts")
-      .select("*")
-      .order("created_at", { ascending: false });
 
-    if (activeTab === "grooming") query = query.eq("type", "grooming");
-    if (activeTab === "boarding") query = query.in("type", ["boarding", "daycare"]);
-    // calendar / crm 不加 type 篩選，抓全部
+// 回到前景、視窗聚焦、網路恢復、自動輪詢
+useEffect(() => {
+  const onVisible = () => {
+    if (document.visibilityState === "visible") fetchOrders();
+  };
+  const onFocus = () => fetchOrders();
+  const onOnline = () => fetchOrders();
 
-    const { data, error } = await query;
-    if (error) {
-      console.error("fetchOrders error:", error);
-    } else {
-      setOrders(data || []);
-    }
-    setLoading(false);
-  }, [activeTab]);
+  document.addEventListener("visibilitychange", onVisible);
+  window.addEventListener("focus", onFocus);
+  window.addEventListener("online", onOnline);
 
-  // 初次 + 切分頁
-  useEffect(() => {
+  const timer = setInterval(() => {
     fetchOrders();
-  }, [fetchOrders]);
+  }, 15000); // 每 15 秒更新
 
-  // 回到前景、視窗聚焦、自動輪詢
-  useEffect(() => {
-    const onVisible = () => {
-      if (document.visibilityState === "visible") fetchOrders();
-    };
-    const onFocus = () => fetchOrders();
-
-    document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("focus", onFocus);
-
-    const timer = setInterval(() => {
-      fetchOrders();
-    }, 30000); // 每 30 秒自動更新一次
-
-    return () => {
-      document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", onFocus);
-      clearInterval(timer);
-    };
-  }, [fetchOrders]);
+  return () => {
+    document.removeEventListener("visibilitychange", onVisible);
+    window.removeEventListener("focus", onFocus);
+    window.removeEventListener("online", onOnline);
+    clearInterval(timer);
+  };
+}, [fetchOrders]);
 
   // Supabase 即時更新（新增/修改/刪除都會刷新）
-  useEffect(() => {
-    const channel = supabase
-      .channel("contracts-live")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "contracts" },
-        () => {
-          fetchOrders();
-        }
-      )
-      .subscribe();
+useEffect(() => {
+  if (channelRef.current) {
+    supabase.removeChannel(channelRef.current);
+    channelRef.current = null;
+  }
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [fetchOrders]);
+  const channel = supabase
+    .channel("contracts-live")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "contracts" },
+      () => {
+        fetchOrders();
+      }
+    )
+    .subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        fetchOrders();
+      }
+      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+        fetchOrders();
+      }
+    });
+
+  channelRef.current = channel;
+
+  return () => {
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+  };
+}, [fetchOrders]);
 
   const updateStatus = async (id, status) => {
     await supabase.from("contracts").update({ status }).eq("id", id);
@@ -1004,9 +1059,12 @@ const manualSync = async () => {
 >
   <Icon name={syncing ? "loader-circle" : "refresh-cw"} size={16} />
 </button>
-          <button onClick={() => supabase.auth.signOut()} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400">
-            <Icon name="log-out" />
-          </button>
+<button
+  onClick={async () => { await supabase.auth.signOut(); }}
+  className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400"
+>
+  <Icon name="log-out" />
+</button>
         </div>
       </nav>
 
@@ -1152,13 +1210,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 <script>
 /* ====== PWA 更新處理（後台 admin）====== */
-const ADMIN_SW_VERSION = "admin-cache-v2026-03-01";
+const ADMIN_SW_VERSION = "admin-cache-v2026-03-03";
 let newWorker = null;
 let refreshing = false;
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw-admin.js?v=4").then((reg) => {
+    navigator.serviceWorker.register("sw-admin.js?v=5").then((reg) => {
 
       // ✅ 若已經有 waiting 的新版
       if (reg.waiting) {
