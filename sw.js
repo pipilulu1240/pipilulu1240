@@ -1,4 +1,4 @@
-const CACHE_NAME = "site-cache-v14";
+const CACHE_NAME = "v15";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -44,25 +44,29 @@ self.addEventListener("fetch", (event) => {
       url.pathname.startsWith("/rest/v1/") ||
       url.pathname.startsWith("/auth/v1/") ||
       url.pathname.startsWith("/storage/v1/") ||
-      url.pathname.startsWith("/realtime/v1/")
+      url.pathname.startsWith("/realtime/v1/") ||
+      url.pathname.startsWith("/functions/v1/")
     );
 
-  const isAdminResource =
-    url.pathname.includes("/admin.html") ||
-    url.pathname.includes("/manifest-admin.json") ||
-    url.pathname.includes("/sw-admin.js");
-  // Supabase 與 admin 相關頁面：網路優先、禁止快取舊資料
-if (isSupabaseApi || isAdminResource) {
-  // Supabase / admin 直接走原始 request，避免 header 被改壞
-  event.respondWith(
-    fetch(req).catch(() => caches.match(req))
-  );
-  return;
-}
-  // HTML 導航：Network First
-  if (req.mode === "navigate") {
+  const isDocument = req.mode === "navigate" || req.destination === "document";
+
+  // 1) API：永遠走網路，禁止回舊快取資料
+  if (isSupabaseApi) {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: "no-store" }).catch(() =>
+        new Response(JSON.stringify({ error: "offline" }), {
+          status: 503,
+          headers: { "Content-Type": "application/json" }
+        })
+      )
+    );
+    return;
+  }
+
+  // 2) HTML 頁面：Network First（拿最新）
+  if (isDocument) {
+    event.respondWith(
+      fetch(req, { cache: "no-store" })
         .then((res) => {
           const copy = res.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
@@ -73,7 +77,7 @@ if (isSupabaseApi || isAdminResource) {
     return;
   }
 
-  // 其他靜態：Stale While Revalidate
+  // 3) 其他靜態資源：Stale-While-Revalidate
   event.respondWith(
     caches.match(req).then((cached) => {
       const fetchPromise = fetch(req)

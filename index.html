@@ -2430,41 +2430,65 @@ function showTerms() {
             }, 300);
         }
 /* ====== PWA 更新處理（前台 index）====== */
-const PWA_SW_VERSION = "v14";
+const PWA_SW_VERSION = "v15";
 let newWorker = null;
 let refreshing = false;
+let __indexReg = null;
+
+function __isFormVisible() {
+    const formView = document.getElementById("view-form");
+    if (!formView) return false;
+    return !formView.classList.contains("hidden");
+}
 
 if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker.register(`sw.js?v=${PWA_SW_VERSION}`).then((reg) => {
+    window.addEventListener("load", async () => {
+        const reg = await navigator.serviceWorker.register(`sw.js?v=${PWA_SW_VERSION}`, {
+            updateViaCache: "none"
+        });
+        __indexReg = reg;
 
-            // 如果已經有 waiting 的新版
-            if (reg.waiting) {
-                newWorker = reg.waiting;
-                showUpdateToast();
+        const forceActivate = (sw) => sw && sw.postMessage({ type: "SKIP_WAITING" });
+
+        // 如果已經有 waiting 的新版
+        if (reg.waiting) {
+            newWorker = reg.waiting;
+            if (__isFormVisible()) {
+                showUpdateToast(); // 正在填表，不強制重整
+            } else {
+                forceActivate(reg.waiting); // 非填表頁，直接更新
             }
+        }
 
-            // 主動檢查更新
-            reg.update();
-            setInterval(() => reg.update(), 1000 * 60 * 10);
+        // 主動檢查更新
+        reg.update();
+        setInterval(() => reg.update(), 5 * 60 * 1000);
 
-            reg.addEventListener("updatefound", () => {
-                newWorker = reg.installing;
-                if (!newWorker) return;
+        reg.addEventListener("updatefound", () => {
+            newWorker = reg.installing;
+            if (!newWorker) return;
 
-                newWorker.addEventListener("statechange", () => {
-                    if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                        showUpdateToast();
+            newWorker.addEventListener("statechange", () => {
+                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                    if (__isFormVisible()) {
+                        showUpdateToast(); // 正在填表，顯示按鈕由使用者決定
+                    } else {
+                        forceActivate(newWorker); // 非填表頁，直接更新
                     }
-                });
+                }
             });
         });
 
-        navigator.serviceWorker.addEventListener("controllerchange", () => {
-            if (refreshing) return;
-            refreshing = true;
-            window.location.reload();
+        // 回到前景就檢查更新
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") reg.update();
         });
+    });
+
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
     });
 }
 let lastContractData = null;
@@ -2828,7 +2852,7 @@ function applyUpdate() {
 }
 
     </script>
-<div id="pwa-update-toast" class="fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:w-80 z-[1000] transform translate-y-32 opacity-0 transition-all duration-500 pointer-events-none pointer-events-auto">
+<div id="pwa-update-toast" class="fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:w-80 z-[1000] transform translate-y-32 opacity-0 transition-all duration-500 pointer-events-none">
     <div class="glass-panel p-5 rounded-[24px] border border-theme-primary/30 shadow-2xl flex flex-col gap-4">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-theme-primary/20 flex items-center justify-center text-theme-primary">

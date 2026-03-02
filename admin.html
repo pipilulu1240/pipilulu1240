@@ -1152,68 +1152,64 @@ const App = () => {
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 <script>
-/* ====== PWA 更新處理（後台 admin）====== */
-const ADMIN_SW_VERSION = "v14";
-let newWorker = null;
+const ADMIN_SW_VERSION = "v15";
 let refreshing = false;
+let __adminReg = null;
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-        navigator.serviceWorker.register(`sw.js?v=${ADMIN_SW_VERSION}`).then((reg) => {
-
-      // ✅ 若已經有 waiting 的新版
-      if (reg.waiting) {
-        newWorker = reg.waiting;
-        showUpdateToast();
-      }
-
-      // 主動檢查更新
-      reg.update();
-      setInterval(() => reg.update(), 60 * 60 * 1000);
-
-      reg.addEventListener("updatefound", () => {
-        newWorker = reg.installing;
-        if (!newWorker) return;
-
-        newWorker.addEventListener("statechange", () => {
-          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-            showUpdateToast();
-          }
-        });
-      });
-    });
-
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (refreshing) return;
-      refreshing = true;
-      window.location.reload();
-    });
-  });
-}
-
-function showUpdateToast() {
-  // ✅ 已更新過就不再彈
-  if (localStorage.getItem("admin_sw_version") === ADMIN_SW_VERSION) return;
-
-  const toast = document.getElementById("admin-update-toast");
-  toast.classList.remove("translate-y-32", "opacity-0", "pointer-events-none");
-  lucide.createIcons();
-}
-
+// 保留這兩個函式，避免下面 HTML 的 onclick 報錯
 function dismissUpdate() {
   const toast = document.getElementById("admin-update-toast");
+  if (!toast) return;
   toast.classList.add("translate-y-32", "opacity-0", "pointer-events-none");
 }
 
 function applyUpdate() {
-  // ✅ 記錄已更新版本
-  localStorage.setItem("admin_sw_version", ADMIN_SW_VERSION);
-
-  dismissUpdate();
-
-  if (newWorker) {
-    newWorker.postMessage({ type: "SKIP_WAITING" });
+  // 你現在是強制自動更新策略，這裡給手動備援
+  if (__adminReg && __adminReg.waiting) {
+    __adminReg.waiting.postMessage({ type: "SKIP_WAITING" });
+    return;
   }
+  // 如果沒有 waiting，就主動檢查更新一次
+  if (__adminReg) __adminReg.update();
+}
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    const reg = await navigator.serviceWorker.register(`sw.js?v=${ADMIN_SW_VERSION}`, {
+      updateViaCache: "none"
+    });
+    __adminReg = reg;
+
+    const forceActivate = (sw) => sw && sw.postMessage({ type: "SKIP_WAITING" });
+
+    // 已經有 waiting 新版 -> 直接啟用
+    if (reg.waiting) forceActivate(reg.waiting);
+
+    // 發現新版 -> 裝好就直接啟用
+    reg.addEventListener("updatefound", () => {
+      const sw = reg.installing;
+      if (!sw) return;
+      sw.addEventListener("statechange", () => {
+        if (sw.state === "installed" && navigator.serviceWorker.controller) {
+          forceActivate(sw);
+        }
+      });
+    });
+
+    // 回到前景就檢查更新
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") reg.update();
+    });
+
+    // 每 5 分鐘檢查一次
+    setInterval(() => reg.update(), 5 * 60 * 1000);
+  });
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
 }
 </script>
 <div id="admin-update-toast"
