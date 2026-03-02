@@ -1,4 +1,4 @@
-const CACHE_NAME = "site-cache-v13";
+const CACHE_NAME = "site-cache-v14";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -52,13 +52,13 @@ self.addEventListener("fetch", (event) => {
     url.pathname.includes("/manifest-admin.json") ||
     url.pathname.includes("/sw-admin.js");
   // Supabase 與 admin 相關頁面：網路優先、禁止快取舊資料
-  if (isSupabaseApi || isAdminResource) {
-    event.respondWith(
-      fetch(req, { cache: "no-store" }).catch(() => caches.match(req))
-    );
-    return;
-  }
-
+if (isSupabaseApi || isAdminResource) {
+  // Supabase / admin 直接走原始 request，避免 header 被改壞
+  event.respondWith(
+    fetch(req).catch(() => caches.match(req))
+  );
+  return;
+}
   // HTML 導航：Network First
   if (req.mode === "navigate") {
     event.respondWith(
