@@ -59,12 +59,20 @@
 <body>
 <div id="root"></div>
 
-<script type="text/babel">
+<script>
+    Babel.registerPreset("react-classic", {
+        presets: [
+            [Babel.availablePresets["react"], { "runtime": "classic" }]
+        ]
+    });
+</script>
+
+<script type="text/babel" data-presets="react-classic" data-plugins="transform-modules-commonjs">
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
 const supabaseUrl = "https://vmjczgepqlefbsfarogk.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtamN6Z2VwcWxlZmJzZmFyb2drIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODI2OTIsImV4cCI6MjA4NTk1ODY5Mn0.7C2vDebLan_VzQnC9QSkE2WAwXHKDpN3onydHFUceiY";
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+window.supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 const ADMIN_EMAIL = "pipilulu1240@gmail.com";
 const STAFF_EMAIL = "staff@pipilulu.com";
@@ -99,7 +107,7 @@ const T = (val) => {
   if (val === true || val === "true") return "是";
   if (val === false || val === "false") return "否";
   if (!val) return "-";
-  const map = { grooming:"洗澡美容", boarding:"住宿", daycare:"安親", dog:"狗狗", cat:"貓咪" };
+  const map = { grooming:"洗澡美容", boarding:"住宿", daycare:"安親", dog:"狗狗" };
   return map[val] || val;
 };
 const ChangePasswordModal = ({ isOpen, onClose }) => {
@@ -440,7 +448,10 @@ onClick={async ()=>{
   <h4 className="font-bold mb-2">寵物資料</h4>
   <div className="grid grid-cols-2 gap-3">
     <Field label="名字" value={raw.pet_name} fieldKey="pet_name" editable />
-    <Field label="種類" value={raw.pet_type} fieldKey="pet_type" editable />
+    <div>
+    <span className="text-gray-400 text-xs">種類</span>
+    <div className="font-bold break-all">狗狗</div>
+</div>
     <Field label="品種" value={raw.pet_breed} fieldKey="pet_breed" editable />
     <Field label="體重" value={raw.pet_weight ? raw.pet_weight + " kg" : ""} fieldKey="pet_weight" editable />
 <Field
@@ -1152,7 +1163,7 @@ const App = () => {
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 <script>
-const ADMIN_SW_VERSION = "v15";
+const ADMIN_SW_VERSION = "v16";
 let refreshing = false;
 let __adminReg = null;
 
