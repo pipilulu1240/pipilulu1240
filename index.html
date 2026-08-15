@@ -71,6 +71,74 @@
             filter: saturate(0.9) brightness(0.95) contrast(0.95);
         }
 
+        /* ✅ 錯誤提示樣式 - 只保留紅框，不加額外 padding */
+        .form-error {
+            border-color: #dc2626 !important;
+            background-color: #fef2f2 !important;
+            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2) !important;
+        }
+        /* ✅ Radio/Checkbox 容器的錯誤樣式 - 只顯示紅框，不影響內部元素大小 */
+        .form-error-radio {
+            border: 2px solid #dc2626 !important;
+            border-radius: 12px !important;
+            background-color: #fef2f2 !important;
+            padding: 6px !important;
+            margin: -2px !important;
+        }
+        /* ✅ 不顯示每個欄位下方的錯誤訊息（只保留在摘要中） */
+        .error-message {
+            display: none !important;
+        }
+        .error-summary {
+            background: #fef2f2;
+            border: 2px solid #dc2626;
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #991b1b;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 0;
+            transition: all 0.3s ease;
+        }
+        .error-summary ul {
+            list-style: disc;
+            padding-left: 16px;
+            margin-top: 4px;
+            font-weight: 500;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .error-summary ul li {
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+        .error-summary ul li:active {
+            background: #fecaca;
+        }
+        /* ✅ 錯誤數量徽章（用於標題旁） */
+        .error-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #dc2626;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 9999px;
+            padding: 0 6px;
+            margin-left: 6px;
+            vertical-align: middle;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
         body { 
             background-color: #F5F9F6;
             background-image: 
@@ -1244,6 +1312,25 @@ pattern="^[A-Za-z][12][0-9]{8}$"
 <input type="hidden" id="vaccine_photo_url" name="vaccine_photo_url">
 </div>
 
+                <!-- ✅ 錯誤摘要區塊 (可收合，預設隱藏) -->
+                <div id="error-summary-container" class="hidden mb-4">
+                    <div id="error-summary" class="error-summary relative overflow-hidden transition-all duration-300">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleErrorSummary()">
+                            <div class="flex items-center gap-2">
+                                <span class="text-red-500 text-lg">⚠️</span>
+                                <span class="text-sm font-bold">尚有 <span id="error-count">0</span> 個項目未填寫</span>
+                            </div>
+                            <button type="button" class="text-red-400 hover:text-red-600 transition-transform" id="error-toggle-btn">
+                                <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <div id="error-list-container" class="mt-2">
+                            <ul id="error-list" class="text-sm space-y-1 pl-2"></ul>
+                            <p class="text-xs text-red-400 mt-2">點擊上方欄位可直接跳轉</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex gap-3 pt-4">
 <button type="button" id="submit-btn" onclick="handleSubmit()"
  class="flex-1 py-3 rounded-xl bg-gradient-lux text-white font-bold text-sm shadow-lg hover:shadow-glow hover:-translate-y-0.5 transition-all">
@@ -1284,21 +1371,21 @@ pattern="^[A-Za-z][12][0-9]{8}$"
 <div id="modal-terms" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeTerms()"></div>
 <div class="relative w-full max-w-sm bg-white rounded-[32px] overflow-hidden max-h-[80vh] flex flex-col transition-all duration-300 transform scale-95 opacity-0" id="modal-content">
-            <div class="p-4 border-b flex items-center justify-between">
+            <div class="p-4 border-b flex items-center justify-between shrink-0">
                 <div class="w-9"></div> <h3 id="modal-title" class="font-bold text-lg text-theme-text flex-1 text-center">契約條款</h3>
-<button onclick="closeTerms()" class="p-2 bg-gray-100 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+<button onclick="closeTerms()" class="p-2 bg-gray-100 rounded-full touch-manipulation"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 <div id="modal-body"
      class="p-6 overflow-y-auto text-sm text-theme-text leading-relaxed space-y-4 text-center"
-     onscroll="checkTermsScroll(this)">
+     style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
 </div>
 
-<div class="p-6 border-t border-theme-sub/10 bg-white/90 backdrop-blur-md safe-bottom">
+<div class="p-6 border-t border-theme-sub/10 bg-white/90 backdrop-blur-md safe-bottom shrink-0">
     <div id="terms-scroll-tip" class="text-xs text-red-500 font-bold text-center mb-3 animate-pulse">
         👇 請滑動至最底部以啟用按鈕
     </div>
     <button id="agree-btn" onclick="agreeTerms()" disabled
-            class="w-full py-4 rounded-2xl font-bold shadow-glow transition-all active:scale-[0.98] tracking-[0.1em] bg-gray-200 text-gray-400 cursor-not-allowed">
+            class="w-full py-4 rounded-2xl font-bold shadow-glow transition-all active:scale-[0.98] tracking-[0.1em] bg-gray-200 text-gray-400 cursor-not-allowed touch-manipulation">
         請閱讀完畢
     </button>
 </div>
@@ -1451,6 +1538,15 @@ function applyOwnerOnly() {
     const latest = Object.values(oldCustomerPets)[0].records[0];
     fillOwnerFields(latest.data);
     closeOldModal();
+
+    // ✅ 導入完成後，使用單一 requestAnimationFrame 配合 setTimeout 確保 DOM 更新
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            clearFilledErrors();
+            refreshErrorSummary();
+            showToast('✅ 已帶入飼主資料，請繼續填寫', 'success');
+        }, 50);
+    });
 }
 
 function applyOldCustomer(type) {
@@ -1463,6 +1559,15 @@ function applyOldCustomer(type) {
     if (type === "boarding") fillBoardingFields(rec.data);
 
     closeOldModal();
+
+    // ✅ 導入完成後，使用單一 requestAnimationFrame 配合 setTimeout 確保 DOM 更新
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            clearFilledErrors();
+            refreshErrorSummary();
+            showToast('✅ 已帶入舊客資料，請檢查並補齊其他欄位', 'success');
+        }, 50);
+    });
 }
 
 /* === 欄位帶入 === */
@@ -1590,50 +1695,129 @@ function updateSignatureLock() {
     }
 }
 async function handleSubmit() {
-    // ✅ 先同步必填狀態
+    // 清除所有舊錯誤
+    clearAllErrors();
+
+    // ✅ 先同步必填狀態 (確保動態必填欄位有被正確設為 required)
     updateBaseRequired();
     updateAgeRequired();
     updateBoardingRequired();
 
     const form = document.getElementById('main-form');
-if (!form.checkValidity()) {
-  form.reportValidity();  // 直接顯示瀏覽器原生泡泡
-  return;
-}
+    const errorMessages = [];
 
-    // ✅ 自訂檢查
+    // --- 1. 檢查所有原生 required 欄位 ---
+    const requiredFields = form.querySelectorAll('[required]');
+    const processedRadioGroups = new Set(); // ✅ 記錄已處理過的 radio 群組
+
+    requiredFields.forEach(el => {
+        // 特殊處理：radio/checkbox 需要檢查是否有任一選項被選中
+        if (el.type === 'radio' || el.type === 'checkbox') {
+            const name = el.name;
+            // 如果這個群組已經處理過了，跳過
+            if (processedRadioGroups.has(name)) return;
+            processedRadioGroups.add(name);
+
+            const group = form.querySelectorAll(`[name="${name}"]`);
+            const isChecked = Array.from(group).some(item => item.checked);
+            if (!isChecked && group.length > 0) {
+                // 取第一個元素作為標記目標
+                const target = group[0];
+                const label = getFieldLabel(target);
+                markError(target);
+                if (!errorMessages.includes(label)) errorMessages.push(label);
+            }
+        } else {
+            // 一般 input / textarea / select
+            if (!el.value || el.value.trim() === '') {
+                const label = getFieldLabel(el);
+                markError(el);
+                if (!errorMessages.includes(label)) errorMessages.push(label);
+            }
+        }
+    });
+
+    // --- 2. 特殊自訂檢查 (不會被 required 涵蓋的項目) ---
+
+    // 2-1. 寵物全身照
     if (!petPhotoFile) {
-        alert("請上傳寵物全身照");
-        return;
-    }
-    if (currentType === 'boarding' && !vaccinePhotoFile) {
-        alert("請上傳疫苗照片");
-        return;
-    }
-    if (currentType === 'grooming' && !document.querySelector('input[name="service"]:checked')) {
-        alert("請至少選擇一項美容服務");
-        return;
+        const uploadLabel = document.getElementById('pet-photo-upload-text');
+        if (uploadLabel) {
+            const parent = uploadLabel.closest('.flex')?.closest('label') || uploadLabel.closest('label');
+            if (parent) markError(parent);
+        }
+        errorMessages.push('寵物近兩週內全身照');
     }
 
+    // 2-2. 美容：至少選一項服務
+    if (currentType === 'grooming') {
+        const checkedService = document.querySelector('input[name="service"]:checked');
+        if (!checkedService) {
+            const firstService = document.querySelector('input[name="service"]');
+            if (firstService) {
+                const parent = firstService.closest('.relative') || firstService.closest('.space-y-3');
+                if (parent) markError(parent);
+            }
+            errorMessages.push('至少一項美容服務');
+        }
+    }
+
+    // 2-3. 美容：打結處理
     const mattingChecked = document.querySelector('input[name="matting_suspected"]');
-    if (mattingChecked && mattingChecked.checked && !document.querySelector('input[name="matting_choice"]:checked')) {
-        alert("請選擇打結處理方式");
-        return;
+    if (mattingChecked && mattingChecked.checked) {
+        const mattingChoice = document.querySelector('input[name="matting_choice"]:checked');
+        if (!mattingChoice) {
+            const details = document.getElementById('matting-details');
+            if (details) markError(details);
+            errorMessages.push('打結處理方式');
+        }
     }
 
-    if (isSubmitting) return;
+    // 2-4. 住宿：疫苗照片
+    if (currentType === 'boarding' && !vaccinePhotoFile) {
+        const uploadLabel = document.getElementById('upload-text');
+        if (uploadLabel) {
+            const parent = uploadLabel.closest('.flex')?.closest('label') || uploadLabel.closest('label');
+            if (parent) markError(parent);
+        }
+        errorMessages.push('疫苗手冊照片');
+    }
 
+    // 2-5. 條款與簽名 (非表單欄位)
     if (!isTermsReady()) {
-        alert("請先閱讀條款");
-        return;
+        const termsBtn = document.getElementById('terms-btn-text')?.closest('button') || document.getElementById('terms-label')?.closest('div');
+        if (termsBtn) markError(termsBtn);
+        errorMessages.push('閱讀並同意服務條款');
     }
     if (!signatureDataUrl) {
-        alert("請先完成簽名");
+        const sigBox = document.getElementById('signature-box');
+        if (sigBox) markError(sigBox);
+        errorMessages.push('數位簽名');
+    }
+
+    // --- 3. 如果有錯誤，顯示摘要並停止送出 ---
+    if (errorMessages.length > 0) {
+        showErrorSummary(errorMessages);
+        // 把焦點移到第一個錯誤欄位
+        const firstError = document.querySelector('.form-error');
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // 如果是 input，嘗試聚焦
+            if (firstError.tagName === 'INPUT' || firstError.tagName === 'SELECT' || firstError.tagName === 'TEXTAREA') {
+                firstError.focus();
+            }
+        }
+        // 顯示 toast 提示
+        showToast(`尚有 ${errorMessages.length} 個項目未填寫，請檢查紅框標示`, 'error');
         return;
     }
 
+    // ✅ 如果沒有錯誤，確保錯誤摘要已隱藏
+    const container = document.getElementById('error-summary-container');
+    if (container) container.classList.add('hidden');
 
-    // 🔒 鎖定按鈕
+    // --- 4. 所有檢查通過，執行送出 ---
+    if (isSubmitting) return;
     isSubmitting = true;
     const btn = document.getElementById("submit-btn");
     btn.disabled = true;
@@ -1667,7 +1851,6 @@ if (!form.checkValidity()) {
         document.getElementById("vaccine_photo_url").value = vaccineUrl || "";
 
         // 原本送出邏輯
-        const form = document.getElementById('main-form');
         const fd = new FormData(form);
         const data = {};
         for (const [key, value] of fd.entries()) {
@@ -1698,14 +1881,14 @@ if (!form.checkValidity()) {
             delete data.boarding_note;
         }
 
-if (currentType === "boarding") {
-    delete data.service;
-    delete data.upgrade_service;
-    delete data.matting_suspected;
-    delete data.matting_choice;
-    delete data.other_service_text;
-    delete data.temperament_note;
-}
+        if (currentType === "boarding") {
+            delete data.service;
+            delete data.upgrade_service;
+            delete data.matting_suspected;
+            delete data.matting_choice;
+            delete data.other_service_text;
+            delete data.temperament_note;
+        }
         if (!data.specified_hospital || !data.specified_hospital.trim()) {
             data.specified_hospital = "依店家指定";
         }
@@ -1721,48 +1904,721 @@ if (currentType === "boarding") {
 
         if (error) throw error;
 
-const contractData = {
-    type: currentType,
-    data,
-    signature_url: signatureUrl,
-    pet_photo_url: petUrl,
-    vaccine_photo_url: vaccineUrl,
-    created_at: new Date().toISOString(),
-    signed_at: signatureTime ? signatureTime.toISOString() : new Date().toISOString()
-};
+        const contractData = {
+            type: currentType,
+            data,
+            signature_url: signatureUrl,
+            pet_photo_url: petUrl,
+            vaccine_photo_url: vaccineUrl,
+            created_at: new Date().toISOString(),
+            signed_at: signatureTime ? signatureTime.toISOString() : new Date().toISOString()
+        };
 
-const hasEmail = (data.email || "").trim() !== "";
+        const hasEmail = (data.email || "").trim() !== "";
 
-// ✅ 如果有填 email，就寄出副本
-if (hasEmail) {
-    const html = generateContractHTML(contractData);
+        if (hasEmail) {
+            const html = generateContractHTML(contractData);
+            await fetch("https://vmjczgepqlefbsfarogk.supabase.co/functions/v1/resend-email", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    apikey: SUPABASE_ANON_KEY,
+                    Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+                },
+                body: JSON.stringify({
+                    to: data.email,
+                    html,
+                    petNames: data.pet_name || "毛孩"
+                })
+            });
+        }
 
-    await fetch("https://vmjczgepqlefbsfarogk.supabase.co/functions/v1/resend-email", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        },
-body: JSON.stringify({
-    to: data.email,
-    html,
-    petNames: data.pet_name || "毛孩"
-})
-    });
-}
-
-showSuccessPage(contractData, hasEmail);
-return;
+        showSuccessPage(contractData, hasEmail);
+        return;
     } catch (err) {
         console.error(err);
         alert("❌ 提交失敗：" + (err.message || err));
     } finally {
-        // 還原按鈕
         isSubmitting = false;
         btn.disabled = false;
         btn.classList.remove("opacity-60", "pointer-events-none");
         btn.innerText = "確認並提交數位契約";
+    }
+}
+
+/* ===== 錯誤處理輔助函式 ===== */
+function getFieldLabel(el) {
+    // ✅ 特殊欄位中文對照表（優先）
+    const labelMap = {
+        'phone': '連絡電話',
+        'pet_birthday': '寵物生日',
+        'pet_age': '寵物年齡',
+        'pet_name': '寵物名字',
+        'pet_breed': '寵物品種',
+        'pet_weight': '寵物體重',
+        'owner_name': '主人姓名',
+        'id_number': '身分證字號',
+        'address': '通訊地址',
+        'emergency_contact': '緊急聯絡人',
+        'emergency_phone': '緊急電話',
+        'microchip_status': '晶片狀態',
+        'gender': '性別',
+        'neuter': '結紮',
+        'aggression': '攻擊性',
+        'dog_social': '與狗相處',
+        'temperament': '毛孩性情',
+        'history_check': '過往病史',
+        'service': '美容服務',
+        'matting_choice': '打結處理方式',
+        'deworming': '定期驅蟲',
+        'barking': '是否易吠叫',
+        'food_guard': '是否護食',
+        'toilet': '是否用尿布墊',
+        'vaccine': '疫苗施打'
+    };
+
+    // 優先使用 id 或 name 對照
+    const idOrName = el.id || el.name;
+    if (idOrName && labelMap[idOrName]) {
+        return labelMap[idOrName];
+    }
+
+    // 嘗試找 label
+    let label = '';
+    if (el.id) {
+        const labelEl = document.querySelector(`label[for="${el.id}"]`);
+        if (labelEl) label = labelEl.textContent.trim();
+    }
+    if (!label) {
+        // 找父層 label
+        const parentLabel = el.closest('label');
+        if (parentLabel) {
+            label = parentLabel.textContent.trim();
+        }
+    }
+    if (!label) {
+        // 找附近的 label (同層級)
+        const siblings = el.parentElement?.querySelectorAll('label');
+        if (siblings && siblings.length > 0) {
+            label = siblings[0].textContent.trim();
+        }
+    }
+    if (!label) {
+        // 找前一個兄弟元素 (可能是標題)
+        const prev = el.previousElementSibling;
+        if (prev && prev.tagName === 'LABEL') {
+            label = prev.textContent.trim();
+        }
+    }
+    // 移除多餘符號
+    label = label.replace(/[*：:]/g, '').trim();
+    return label || el.name || el.id || '未命名欄位';
+}
+
+function markError(el) {
+    if (!el) return;
+
+    // ✅ 如果是 radio 或 checkbox，改為標記其所在的容器（每個群組獨立）
+    if (el.type === 'radio' || el.type === 'checkbox') {
+        const name = el.name;
+        if (name) {
+            // ✅ 找到同 name 群組的直接父層容器
+            let groupContainer = el.closest('.flex.gap-2');
+            if (!groupContainer) groupContainer = el.closest('.flex.gap-3');
+            if (!groupContainer) groupContainer = el.closest('.flex');
+            if (!groupContainer) groupContainer = el.closest('.grid');
+            if (!groupContainer) groupContainer = el.closest('.space-y-2') || el.closest('.space-y-4');
+            
+            if (groupContainer) {
+                // ✅ 使用專門的 radio 錯誤樣式（不影響內部元素大小）
+                if (!groupContainer.classList.contains('form-error-radio')) {
+                    // 移除可能存在的舊樣式
+                    groupContainer.classList.remove('form-error');
+                    groupContainer.classList.add('form-error-radio');
+                    // 移除舊的錯誤訊息
+                    const oldMsg = groupContainer.querySelector('.error-message');
+                    if (oldMsg) oldMsg.remove();
+                    // 不顯示錯誤訊息（已用 CSS 隱藏）
+                }
+                return;
+            }
+        }
+    }
+
+    // 如果是 label 或 container，找裡面的 input
+    let target = el;
+    if (el.tagName === 'LABEL' || el.classList.contains('relative') || el.classList.contains('glass-panel')) {
+        const input = el.querySelector('input, select, textarea');
+        if (input) target = input;
+    }
+    // 如果目標是 container，加上 error 樣式到容器本身
+    if (target.tagName === 'DIV' || target.tagName === 'SECTION' || target.tagName === 'LABEL') {
+        // 檢查是否已經被標記過了
+        if (!target.classList.contains('form-error') && !target.classList.contains('form-error-radio')) {
+            target.classList.add('form-error');
+            // 移除舊的錯誤訊息
+            const oldMsg = target.querySelector('.error-message');
+            if (oldMsg) oldMsg.remove();
+            // 不顯示錯誤訊息（已用 CSS 隱藏）
+        }
+    } else {
+        // input/select/textarea 直接加紅框
+        if (!target.classList.contains('form-error') && !target.classList.contains('form-error-radio')) {
+            target.classList.add('form-error');
+            // 移除舊的錯誤訊息
+            const parent = target.parentElement;
+            if (parent) {
+                const oldMsg = parent.querySelector('.error-message');
+                if (oldMsg) oldMsg.remove();
+                // 不顯示錯誤訊息（已用 CSS 隱藏）
+            }
+        }
+    }
+}
+
+function clearAllErrors() {
+    // 移除所有紅框
+    document.querySelectorAll('.form-error').forEach(el => {
+        el.classList.remove('form-error');
+    });
+    document.querySelectorAll('.form-error-radio').forEach(el => {
+        el.classList.remove('form-error-radio');
+    });
+    // 移除所有錯誤訊息（如果有顯示的話）
+    document.querySelectorAll('.error-message').forEach(el => {
+        el.remove();
+    });
+    // 隱藏錯誤摘要
+    document.getElementById('error-summary-container')?.classList.add('hidden');
+}
+
+function showErrorSummary(messages) {
+    const container = document.getElementById('error-summary-container');
+    const list = document.getElementById('error-list');
+    const countEl = document.getElementById('error-count');
+    const listContainer = document.getElementById('error-list-container');
+    const toggleBtn = document.getElementById('error-toggle-btn');
+    
+    if (!container || !list || !countEl) return;
+    
+    list.innerHTML = '';
+    messages.forEach(msg => {
+        const li = document.createElement('li');
+        li.textContent = '• ' + msg;
+        li.addEventListener('click', function() {
+            scrollToField(msg);
+        });
+        list.appendChild(li);
+    });
+    
+    container.classList.remove('hidden');
+    countEl.textContent = messages.length;
+    
+    // ✅ 永遠展開（讓使用者看到所有錯誤項目）
+    if (listContainer && toggleBtn) {
+        listContainer.classList.remove('hidden');
+        toggleBtn.style.transform = 'rotate(180deg)';
+    }
+    
+    // 滑動到摘要
+    container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    lucide.createIcons();
+}
+
+/* ===== 即時驗證：使用者輸入時自動移除錯誤（優化版） ===== */
+let summaryDebounceTimer = null;
+
+function setupRealtimeValidation() {
+    const form = document.getElementById('main-form');
+    if (!form) return;
+
+    // 防抖：延遲更新錯誤摘要，避免頻繁 DOM 操作
+    function debouncedRefreshSummary() {
+        if (summaryDebounceTimer) {
+            clearTimeout(summaryDebounceTimer);
+        }
+        summaryDebounceTimer = setTimeout(() => {
+            refreshErrorSummary();
+            summaryDebounceTimer = null;
+        }, 150);
+    }
+
+    // 監聽所有 input / select / textarea 的輸入事件
+    form.addEventListener('input', function(e) {
+        const target = e.target;
+        // 只處理表單元素
+        if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA') {
+            // ✅ 檢查是否為 radio 或 checkbox
+            if (target.type === 'radio' || target.type === 'checkbox') {
+                const name = target.name;
+                if (name) {
+                    const group = form.querySelectorAll(`[name="${name}"]`);
+                    const isAnyChecked = Array.from(group).some(item => item.checked);
+                    
+                    if (isAnyChecked) {
+                        // 找到群組容器並清除錯誤
+                        const firstEl = group[0];
+                        if (firstEl) {
+                            let groupContainer = firstEl.closest('.flex.gap-2');
+                            if (!groupContainer) groupContainer = firstEl.closest('.flex.gap-3');
+                            if (!groupContainer) groupContainer = firstEl.closest('.flex');
+                            if (!groupContainer) groupContainer = firstEl.closest('.grid');
+                            if (!groupContainer) groupContainer = firstEl.closest('.space-y-2') || firstEl.closest('.space-y-4');
+                            
+                            if (groupContainer) {
+                                let hasError = false;
+                                if (groupContainer.classList.contains('form-error')) {
+                                    groupContainer.classList.remove('form-error');
+                                    hasError = true;
+                                }
+                                if (groupContainer.classList.contains('form-error-radio')) {
+                                    groupContainer.classList.remove('form-error-radio');
+                                    hasError = true;
+                                }
+                                const msg = groupContainer.querySelector('.error-message');
+                                if (msg) msg.remove();
+                                
+                                if (hasError) {
+                                    debouncedRefreshSummary();
+                                }
+                            }
+                        }
+                    }
+                }
+                return; // radio/checkbox 處理完直接返回
+            }
+            
+            // ✅ 一般 input / select / textarea
+            // 如果這個欄位有錯誤樣式，檢查是否已填寫
+            if (target.classList.contains('form-error') || target.classList.contains('form-error-radio')) {
+                let isValid = false;
+                if (target.type === 'file') {
+                    // 檔案上傳：檢查是否有檔案
+                    isValid = target.files && target.files.length > 0;
+                } else {
+                    // 一般欄位：檢查是否有值
+                    isValid = target.value && target.value.trim() !== '';
+                }
+
+                if (isValid) {
+                    // 清除這個欄位的錯誤（不立即更新摘要）
+                    clearFieldError(target);
+                    // 防抖更新摘要
+                    debouncedRefreshSummary();
+                }
+            }
+        }
+    }, { passive: true }); // ✅ 使用 passive 提升滾動效能
+
+    // 監聽 radio / checkbox 的 change 事件（因為 change 不會觸發 input）
+    form.addEventListener('change', function(e) {
+        const target = e.target;
+        if (target.tagName === 'INPUT' && (target.type === 'radio' || target.type === 'checkbox')) {
+            // 檢查同 name 群組是否已有選中
+            const name = target.name;
+            if (name) {
+                const group = form.querySelectorAll(`[name="${name}"]`);
+                const isAnyChecked = Array.from(group).some(item => item.checked);
+                
+                if (isAnyChecked) {
+                    // ✅ 找到這個群組的容器並清除錯誤（同時支援兩種錯誤類別）
+                    const firstEl = group[0];
+                    if (firstEl) {
+                        let groupContainer = firstEl.closest('.flex.gap-2');
+                        if (!groupContainer) groupContainer = firstEl.closest('.flex.gap-3');
+                        if (!groupContainer) groupContainer = firstEl.closest('.flex');
+                        if (!groupContainer) groupContainer = firstEl.closest('.grid');
+                        if (!groupContainer) groupContainer = firstEl.closest('.space-y-2') || firstEl.closest('.space-y-4');
+                        
+                        if (groupContainer) {
+                            let hasError = false;
+                            // ✅ 檢查並移除 form-error
+                            if (groupContainer.classList.contains('form-error')) {
+                                groupContainer.classList.remove('form-error');
+                                hasError = true;
+                            }
+                            // ✅ 檢查並移除 form-error-radio
+                            if (groupContainer.classList.contains('form-error-radio')) {
+                                groupContainer.classList.remove('form-error-radio');
+                                hasError = true;
+                            }
+                            // 移除錯誤訊息
+                            const msg = groupContainer.querySelector('.error-message');
+                            if (msg) msg.remove();
+                            
+                            // 如果有任何錯誤被移除，更新摘要
+                            if (hasError) {
+                                debouncedRefreshSummary();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }, { passive: true });
+
+    // 監聽檔案上傳的 change
+    form.addEventListener('change', function(e) {
+        const target = e.target;
+        if (target.type === 'file') {
+            if (target.files && target.files.length > 0) {
+                clearFieldError(target);
+                debouncedRefreshSummary();
+            }
+        }
+    }, { passive: true });
+}
+
+function clearFieldError(el) {
+    // 移除元素本身的紅框（兩種樣式都清除）
+    el.classList.remove('form-error');
+    el.classList.remove('form-error-radio');
+    
+    // 移除該欄位下方的錯誤訊息
+    const parent = el.parentElement;
+    if (parent) {
+        const msg = parent.querySelector('.error-message');
+        if (msg) msg.remove();
+    }
+    
+    // ✅ 如果父層是 label 或 container，也檢查是否有 error 樣式需要移除
+    const container = el.closest('.form-error');
+    if (container && container !== el) {
+        container.classList.remove('form-error');
+        const msg = container.querySelector('.error-message');
+        if (msg) msg.remove();
+    }
+    
+    const containerRadio = el.closest('.form-error-radio');
+    if (containerRadio && containerRadio !== el) {
+        containerRadio.classList.remove('form-error-radio');
+        const msg = containerRadio.querySelector('.error-message');
+        if (msg) msg.remove();
+    }
+
+    // ✅ 額外檢查：如果 el 是 radio/checkbox，找同 name 群組的父容器
+    if (el.type === 'radio' || el.type === 'checkbox') {
+        const name = el.name;
+        if (name) {
+            let groupContainer = el.closest('.flex.gap-2');
+            if (!groupContainer) groupContainer = el.closest('.flex.gap-3');
+            if (!groupContainer) groupContainer = el.closest('.flex');
+            if (!groupContainer) groupContainer = el.closest('.grid');
+            if (!groupContainer) groupContainer = el.closest('.space-y-2') || el.closest('.space-y-4');
+            
+            if (groupContainer) {
+                if (groupContainer.classList.contains('form-error')) {
+                    groupContainer.classList.remove('form-error');
+                    const msg = groupContainer.querySelector('.error-message');
+                    if (msg) msg.remove();
+                }
+                if (groupContainer.classList.contains('form-error-radio')) {
+                    groupContainer.classList.remove('form-error-radio');
+                    const msg = groupContainer.querySelector('.error-message');
+                    if (msg) msg.remove();
+                }
+            }
+        }
+    }
+}
+
+function refreshErrorSummary() {
+    const container = document.getElementById('error-summary-container');
+    const list = document.getElementById('error-list');
+    const listContainer = document.getElementById('error-list-container');
+    const toggleBtn = document.getElementById('error-toggle-btn');
+    const countEl = document.getElementById('error-count');
+    
+    if (!container || !list || !countEl) return;
+
+    // ✅ 檢查兩種錯誤樣式
+    const errorElements = document.querySelectorAll('.form-error, .form-error-radio');
+    
+    // 如果沒有錯誤元素，直接隱藏摘要
+    if (errorElements.length === 0) {
+        container.classList.add('hidden');
+        countEl.textContent = '0';
+        return;
+    }
+
+    // 重新檢查所有欄位，看是否還有錯誤
+    const errorMessages = [];
+    const form = document.getElementById('main-form');
+    if (!form) return;
+
+    // 檢查所有帶有 .form-error 或 .form-error-radio 的欄位
+    errorElements.forEach(el => {
+        let label = '';
+        
+        // ✅ 如果 el 是容器（如 grid/flex 容器），嘗試找裡面的 input 來取得標籤
+        if (el.tagName === 'DIV' && (el.classList.contains('grid') || el.classList.contains('flex') || el.classList.contains('space-y-2') || el.classList.contains('space-y-4') || el.classList.contains('gap-2') || el.classList.contains('gap-3'))) {
+            const input = el.querySelector('input, select, textarea');
+            if (input) {
+                label = getFieldLabel(input);
+            }
+        }
+        
+        // 如果上面沒找到，直接用 el 找標籤
+        if (!label) {
+            label = getFieldLabel(el);
+        }
+        
+        if (label && !errorMessages.includes(label)) {
+            errorMessages.push(label);
+        } else if (!label) {
+            // 如果找不到 label，用 name 或 id
+            const name = el.name || el.id;
+            if (name && !errorMessages.includes(name)) {
+                errorMessages.push(name);
+            }
+        }
+    });
+
+    // 檢查特殊項目（照片上傳、條款、簽名等）
+    // 這些項目不會顯示 .form-error，但我們要檢查它們的狀態
+    
+    // 寵物照片
+    const petPhotoLabel = document.getElementById('pet-photo-upload-text')?.closest('label');
+    if (petPhotoLabel && (petPhotoLabel.classList.contains('form-error') || petPhotoLabel.classList.contains('form-error-radio'))) {
+        if (!errorMessages.includes('寵物近兩週內全身照')) {
+            errorMessages.push('寵物近兩週內全身照');
+        }
+    }
+    
+    // 疫苗照片 (住宿)
+    if (currentType === 'boarding') {
+        const vaccineLabel = document.getElementById('upload-text')?.closest('label');
+        if (vaccineLabel && (vaccineLabel.classList.contains('form-error') || vaccineLabel.classList.contains('form-error-radio'))) {
+            if (!errorMessages.includes('疫苗手冊照片')) {
+                errorMessages.push('疫苗手冊照片');
+            }
+        }
+    }
+
+    // 條款
+    const termsBtn = document.getElementById('terms-btn-text')?.closest('button');
+    if (termsBtn && (termsBtn.classList.contains('form-error') || termsBtn.classList.contains('form-error-radio'))) {
+        if (!errorMessages.includes('閱讀並同意服務條款')) {
+            errorMessages.push('閱讀並同意服務條款');
+        }
+    }
+
+    // 簽名
+    const sigBox = document.getElementById('signature-box');
+    if (sigBox && (sigBox.classList.contains('form-error') || sigBox.classList.contains('form-error-radio'))) {
+        if (!errorMessages.includes('數位簽名')) {
+            errorMessages.push('數位簽名');
+        }
+    }
+
+    // 更新錯誤摘要
+    if (errorMessages.length > 0) {
+        // ✅ 只在內容有變化時才更新 DOM
+        const currentItems = list.querySelectorAll('li');
+        const currentTexts = Array.from(currentItems).map(li => li.textContent);
+        const newTexts = errorMessages.map(msg => '• ' + msg);
+        
+        // 如果內容相同且數量相同，跳過更新
+        if (currentTexts.length === newTexts.length && 
+            currentTexts.every((t, i) => t === newTexts[i])) {
+            // 但仍然確保容器是顯示的
+            container.classList.remove('hidden');
+            countEl.textContent = errorMessages.length;
+            return;
+        }
+
+        list.innerHTML = '';
+        errorMessages.forEach(msg => {
+            const li = document.createElement('li');
+            li.textContent = '• ' + msg;
+            // ✅ 點擊錯誤項目時，自動滾動到對應欄位
+            li.addEventListener('click', function() {
+                scrollToField(msg);
+            });
+            list.appendChild(li);
+        });
+        
+        container.classList.remove('hidden');
+        // ✅ 更新錯誤數量
+        countEl.textContent = errorMessages.length;
+        
+        // ✅ 永遠展開（讓使用者看到所有錯誤項目）
+        if (listContainer && toggleBtn) {
+            listContainer.classList.remove('hidden');
+            toggleBtn.style.transform = 'rotate(180deg)';
+        }
+        // ✅ 確保圖標更新
+        lucide.createIcons();
+    } else {
+        container.classList.add('hidden');
+        countEl.textContent = '0';
+    }
+}
+
+/* ===== 清除所有已填欄位的錯誤（用於舊客導入後） ===== */
+function clearFilledErrors() {
+    const form = document.getElementById('main-form');
+    if (!form) return;
+
+    // 1. 檢查所有帶有 .form-error 的欄位
+    const errorElements = form.querySelectorAll('.form-error, .form-error-radio');
+    errorElements.forEach(el => {
+        let shouldClear = false;
+        
+        // 判斷這個欄位是否已填寫
+        if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+            if (el.type === 'radio' || el.type === 'checkbox') {
+                // radio/checkbox：檢查同 name 群組是否有任一被選中
+                const name = el.name;
+                if (name) {
+                    const group = form.querySelectorAll(`[name="${name}"]`);
+                    shouldClear = Array.from(group).some(item => item.checked);
+                }
+            } else if (el.type === 'file') {
+                // 檔案上傳：檢查是否有檔案
+                shouldClear = el.files && el.files.length > 0;
+            } else {
+                // 一般欄位：檢查是否有值
+                shouldClear = el.value && el.value.trim() !== '';
+            }
+        } else if (el.classList.contains('glass-panel') || el.classList.contains('relative') || el.classList.contains('flex') || el.classList.contains('grid')) {
+            // 容器類型的錯誤標記：檢查內部是否有已填寫的輸入
+            const inputs = el.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                if (input.type === 'radio' || input.type === 'checkbox') {
+                    const name = input.name;
+                    if (name) {
+                        const group = form.querySelectorAll(`[name="${name}"]`);
+                        if (Array.from(group).some(item => item.checked)) {
+                            shouldClear = true;
+                        }
+                    }
+                } else if (input.type === 'file') {
+                    if (input.files && input.files.length > 0) {
+                        shouldClear = true;
+                    }
+                } else {
+                    if (input.value && input.value.trim() !== '') {
+                        shouldClear = true;
+                    }
+                }
+            });
+        }
+
+        if (shouldClear) {
+            clearFieldError(el);
+        }
+    });
+
+    // 2. 檢查特殊項目（條款、簽名）
+    // 條款
+    if (isTermsReady()) {
+        const termsBtn = document.getElementById('terms-btn-text')?.closest('button');
+        if (termsBtn && (termsBtn.classList.contains('form-error') || termsBtn.classList.contains('form-error-radio'))) {
+            termsBtn.classList.remove('form-error');
+            termsBtn.classList.remove('form-error-radio');
+            const parent = termsBtn.parentElement;
+            if (parent) {
+                const msg = parent.querySelector('.error-message');
+                if (msg) msg.remove();
+            }
+        }
+    }
+
+    // 簽名
+    if (signatureDataUrl) {
+        const sigBox = document.getElementById('signature-box');
+        if (sigBox && (sigBox.classList.contains('form-error') || sigBox.classList.contains('form-error-radio'))) {
+            sigBox.classList.remove('form-error');
+            sigBox.classList.remove('form-error-radio');
+            const parent = sigBox.parentElement;
+            if (parent) {
+                const msg = parent.querySelector('.error-message');
+                if (msg) msg.remove();
+            }
+        }
+    }
+}
+
+// ✅ 切換錯誤摘要展開/收合
+function toggleErrorSummary() {
+    const listContainer = document.getElementById('error-list-container');
+    const toggleBtn = document.getElementById('error-toggle-btn');
+    if (!listContainer || !toggleBtn) return;
+    
+    listContainer.classList.toggle('hidden');
+    if (listContainer.classList.contains('hidden')) {
+        toggleBtn.style.transform = 'rotate(0deg)';
+    } else {
+        toggleBtn.style.transform = 'rotate(180deg)';
+    }
+}
+
+// ✅ 點擊錯誤項目時滾動到對應欄位
+function scrollToField(label) {
+    // 先嘗試用 label 找對應的 input
+    const labelMap = {
+        '連絡電話': 'phone',
+        '寵物生日': 'pet_birthday',
+        '寵物年齡': 'pet_age',
+        '寵物名字': 'pet_name',
+        '寵物品種': 'pet_breed',
+        '寵物體重': 'pet_weight',
+        '主人姓名': 'owner_name',
+        '身分證字號': 'id_number',
+        '通訊地址': 'address',
+        '緊急聯絡人': 'emergency_contact',
+        '緊急電話': 'emergency_phone',
+        '晶片狀態': 'microchip_status',
+        '性別': 'gender',
+        '結紮': 'neuter',
+        '攻擊性': 'aggression',
+        '與狗相處': 'dog_social',
+        '毛孩性情': 'temperament',
+        '過往病史': 'history_check',
+        '美容服務': 'service',
+        '打結處理方式': 'matting_choice',
+        '定期驅蟲': 'deworming',
+        '是否易吠叫': 'barking',
+        '是否護食': 'food_guard',
+        '是否用尿布墊': 'toilet',
+        '疫苗施打': 'vaccine'
+    };
+    
+    let targetId = labelMap[label];
+    let targetEl = null;
+    
+    if (targetId) {
+        targetEl = document.getElementById(targetId);
+        if (!targetEl) {
+            // 試試看 name
+            targetEl = document.querySelector(`[name="${targetId}"]`);
+        }
+    }
+    
+    // 如果找不到，試試看包含文字的 label
+    if (!targetEl) {
+        const labels = document.querySelectorAll('label');
+        const cleanLabel = label.replace('• ', '').trim();
+        for (let l of labels) {
+            if (l.textContent.includes(cleanLabel)) {
+                const input = l.querySelector('input, select, textarea');
+                if (input) {
+                    targetEl = input;
+                    break;
+                }
+            }
+        }
+    }
+    
+    if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetEl.focus();
+        // 如果是有錯誤的欄位，閃爍一下
+        targetEl.classList.add('form-error');
+        setTimeout(() => {
+            targetEl.classList.remove('form-error');
+        }, 1500);
     }
 }
 window.addEventListener('load', () => {
@@ -1783,6 +2639,19 @@ window.location.href = "admin.html?from=pwa&t=" + Date.now();
     }
     lastTap = now;
   });
+
+  // ✅ 啟用即時驗證（使用者輸入時自動清除錯誤）
+  setupRealtimeValidation();
+
+  // ✅ 優化條款彈窗滾動事件（取代內聯 onscroll）
+  const modalBody = document.getElementById('modal-body');
+  if (modalBody) {
+    // 移除內聯 onscroll 屬性，改用 addEventListener
+    modalBody.removeAttribute('onscroll');
+    modalBody.addEventListener('scroll', function(e) {
+      checkTermsScroll(this);
+    }, { passive: true });
+  }
 });
 
 window.addEventListener('load', () => {
@@ -1839,8 +2708,22 @@ function agreeTerms() {
     badge.innerText = '已完成';
     badge.className = 'text-xs font-bold bg-theme-primary text-white px-2 py-1 rounded';
 
+    // ✅ 條款閱讀完成後，清除條款按鈕的錯誤提示
+    const termsBtn = document.getElementById('terms-btn-text')?.closest('button');
+    if (termsBtn) {
+        termsBtn.classList.remove('form-error');
+        const parent = termsBtn.parentElement;
+        if (parent) {
+            const msg = parent.querySelector('.error-message');
+            if (msg) msg.remove();
+        }
+    }
+
     updateSignatureLock();
     closeTerms();
+
+    // ✅ 更新錯誤摘要
+    refreshErrorSummary();
 }
 // ✅ 必填控制工具
 function setRequiredById(id, required) {
@@ -2304,17 +3187,30 @@ function saveSignature() {
         });
 
     closeSignatureModal();
+
+    // ✅ 簽名完成後，清除簽名欄位的錯誤提示
+    const sigBox = document.getElementById('signature-box');
+    if (sigBox) {
+        sigBox.classList.remove('form-error');
+        const parent = sigBox.parentElement;
+        if (parent) {
+            const msg = parent.querySelector('.error-message');
+            if (msg) msg.remove();
+        }
+    }
+    // ✅ 更新錯誤摘要
+    refreshErrorSummary();
 }
 
         // 5. 契約條款 Modal (保持原樣)
 const TERMS_CONTENT = {
             grooming: `
-                <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-6 text-red-700 font-bold text-left text-xs animate-pulse">
+                <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-6 text-red-700 font-bold text-left text-xs">
                     ⚠️ 飼主應盡告知義務，若因隱瞞病況發生意外或死亡，經法定程序判定店家無疏失，<span class="underline">店家不須負損害賠償責任</span>。
                 </div>
 <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-amber-900 text-[12px] leading-relaxed text-left">
   <div class="flex items-center gap-2 font-bold text-amber-800 mb-2">
-    <i data-lucide="badge-dollar-sign" class="w-4 h-4"></i>
+    <span class="w-4 h-4 text-center">💰</span>
     收費與額外處理費用
   </div>
   <p>收費依體型毛量現場報價。</p>
@@ -2341,7 +3237,7 @@ const TERMS_CONTENT = {
                 </div>
             `,
 boarding: `
-                <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-6 text-red-700 font-bold text-center text-xs animate-pulse">
+                <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-6 text-red-700 font-bold text-center text-xs">
                     ⚠️ 飼主應盡告知義務，若因隱瞞病況發生意外或死亡，經法定程序判定店家無疏失，<span class="underline">店家不須負損害賠償責任</span>。
                 </div>
 
@@ -2350,7 +3246,7 @@ boarding: `
                     
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
                         <p class="text-amber-800 font-black flex items-center gap-1">
-                            <i data-lucide="shield-alert" class="w-4 h-4"></i> 非 24 小時照護聲明：
+                            <span class="w-4 h-4 text-center">⚠️</span> 非 24 小時照護聲明：
                         </p>
                         <p class="text-amber-900 leading-relaxed">
                             本人（飼主）已知悉且同意，<span class="font-black underline">大柴小熊無提供夜間照顧服務</span>。活動時間結束後至隔日開店前，寵物將獨處於房間內。若寵物於夜間無人時段發生突發狀況（如急病、休克、自身焦慮造成之傷害、嘔吐等），店家可能無法即時發現或處置，<span class="font-black">本人願意承擔此風險，並同意不追究店家責任</span>。
@@ -2391,18 +3287,37 @@ boarding: `
             `
         };
 
+// ✅ 緩存條款內容，避免重複生成
+let cachedGroomingContent = null;
+let cachedBoardingContent = null;
+
+function getTermsContent(type) {
+    if (type === 'grooming') {
+        if (!cachedGroomingContent) {
+            cachedGroomingContent = TERMS_CONTENT.grooming;
+        }
+        return cachedGroomingContent;
+    } else {
+        if (!cachedBoardingContent) {
+            cachedBoardingContent = TERMS_CONTENT.boarding;
+        }
+        return cachedBoardingContent;
+    }
+}
+
 function showTerms() {
     const modal = document.getElementById('modal-terms');
     const content = document.getElementById('modal-content');
     const body = document.getElementById('modal-body');
     const title = document.getElementById('modal-title');
 
+    // ✅ 使用緩存內容
     if (currentType === 'grooming') {
         title.innerText = "犬貓美容契約條款";
-        body.innerHTML = TERMS_CONTENT.grooming;
+        body.innerHTML = getTermsContent('grooming');
     } else {
         title.innerText = "寵物住宿契約條款";
-        body.innerHTML = TERMS_CONTENT.boarding;
+        body.innerHTML = getTermsContent('boarding');
     }
 
     // ⭐ 每次打開都重設按鈕為鎖定
@@ -2413,15 +3328,16 @@ function showTerms() {
     btn.innerText = "請閱讀完畢";
     tip.classList.remove('hidden');
 
-    // ⭐ 卷軸回到最上
-    setTimeout(() => {
+    // ⭐ 卷軸回到最上（使用 requestAnimationFrame 優化）
+    requestAnimationFrame(() => {
         body.scrollTop = 0;
-    }, 50);
+    });
 
     modal.classList.remove('hidden');
-    setTimeout(() => {
+    // ✅ 使用 requestAnimationFrame 優化動畫
+    requestAnimationFrame(() => {
         content.classList.remove('scale-95', 'opacity-0');
-    }, 10);
+    });
 }
         function closeTerms() {
             const modal = document.getElementById('modal-terms');
@@ -2433,7 +3349,7 @@ function showTerms() {
             }, 300);
         }
 /* ====== PWA 更新處理（前台 index）====== */
-const PWA_SW_VERSION = "v17";
+const PWA_SW_VERSION = "v18";
 let newWorker = null;
 let refreshing = false;
 let __indexReg = null;
@@ -2804,16 +3720,25 @@ ${isHighRisk ? `
 `;
 }
 
+// ✅ 使用 throttle 優化滾動檢測（每 100ms 最多執行一次）
+let scrollCheckTimer = null;
+
 function checkTermsScroll(el) {
-    const reachedBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 20;
-    if (reachedBottom) {
-        const btn = document.getElementById('agree-btn');
-        const tip = document.getElementById('terms-scroll-tip');
-        btn.disabled = false;
-        btn.className = "w-full py-4 bg-gradient-lux text-white rounded-2xl font-bold shadow-glow hover:shadow-lg transition-all active:scale-[0.98] tracking-[0.1em]";
-        btn.innerText = "我已閱讀並同意";
-        tip.classList.add('hidden');
-    }
+    if (scrollCheckTimer) return;
+    scrollCheckTimer = setTimeout(() => {
+        const reachedBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 20;
+        if (reachedBottom) {
+            const btn = document.getElementById('agree-btn');
+            const tip = document.getElementById('terms-scroll-tip');
+            if (btn) {
+                btn.disabled = false;
+                btn.className = "w-full py-4 bg-gradient-lux text-white rounded-2xl font-bold shadow-glow hover:shadow-lg transition-all active:scale-[0.98] tracking-[0.1em]";
+                btn.innerText = "我已閱讀並同意";
+            }
+            if (tip) tip.classList.add('hidden');
+        }
+        scrollCheckTimer = null;
+    }, 100);
 }
 function showUpdateToast() {
     // ✅ 如果已經更新過這個版本，就不再跳
