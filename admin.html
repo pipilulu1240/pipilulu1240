@@ -443,6 +443,16 @@ onClick={async ()=>{
   </div>
 </div>
 
+{/* ✅ 新增：服務規範與影像授權同意（精簡版） */}
+<div className="bg-bear-bg p-4 rounded-2xl border">
+  <div className="flex items-center gap-2">
+    <span className="text-xs font-bold text-gray-500">📋 影像授權：</span>
+    <span className={`text-sm font-bold ${raw.agree_service_policy === "同意" || raw.agree_service_policy === true || raw.agree_service_policy === "true" ? 'text-green-600' : 'text-red-600'}`}>
+      {raw.agree_service_policy === "同意" || raw.agree_service_policy === true || raw.agree_service_policy === "true" ? '✅ 同意' : '❌ 不同意'}
+    </span>
+  </div>
+</div>
+
 {/* 寵物資料 */}
 <div className="bg-bear-bg p-4 rounded-2xl border">
   <h4 className="font-bold mb-2">寵物資料</h4>
@@ -1083,6 +1093,8 @@ if (error) {
   const boardingDate = (order.type === "boarding" || order.type === "daycare") ? getBoardingDate(raw) : "";
 
   const hasNote = !!order.admin_note;
+  // 舊訂單沒有這個欄位視同同意，只有明確為 false 或 "不同意" 才視為不同意
+  const hasAgreedPolicy = raw.agree_service_policy === true || raw.agree_service_policy === "true" || raw.agree_service_policy === undefined || raw.agree_service_policy === null || raw.agree_service_policy === "";
 
   const isBigGrooming =
     order.type === "grooming" &&
@@ -1111,6 +1123,9 @@ if (error) {
   {isDaycare && (
     <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">安親</span>
   )}
+  {raw.agree_service_policy === false || raw.agree_service_policy === "不同意" ? (
+    <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-bold">🚫 不同意影像授權</span>
+  ) : null}
 </div>
         </div>
 
@@ -1163,7 +1178,7 @@ const App = () => {
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 <script>
-const ADMIN_SW_VERSION = "v16";
+const ADMIN_SW_VERSION = "v17";
 let refreshing = false;
 let __adminReg = null;
 

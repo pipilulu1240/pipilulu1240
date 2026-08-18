@@ -1008,6 +1008,20 @@ pattern="^[A-Za-z][12][0-9]{8}$"
                     </div>
                     
                     <div class="space-y-4">
+
+                        <!-- ✅ 新增：住宿預約須知提醒 -->
+                        <div class="bg-blue-50 border-l-4 border-blue-500 rounded-2xl p-5 shadow-sm">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xl">🐾</span>
+                                <span class="font-black text-blue-800 text-sm">住宿預約須知</span>
+                            </div>
+                            <div class="text-xs text-blue-700 leading-relaxed space-y-2">
+                                <p>為了讓狗狗在住宿期間能夠安心，也讓我們能充分了解每隻狗狗的個性、生活習慣與相處方式，住宿服務僅開放給熟悉的狗狗預約。</p>
+                                <p class="font-bold">需與我們有 <span class="text-blue-900 underline">至少一個月以上的固定配合與互動紀錄</span>（如美容、安親等），彼此建立一定的熟悉與信任後，才會開放住宿預約。</p>
+                                <p class="text-red-600 font-bold">因此 初次來店、尚未熟悉的狗狗，恕不接受臨時或直接預約住宿。</p>
+                                <p>住宿期間狗狗會一起生活與活動，安全與適應狀況是我們最優先的考量 🤍<br>謝謝大家的理解與配合。</p>
+                            </div>
+                        </div>
                         <details class="group bg-white border border-theme-sub/20 rounded-2xl overflow-hidden shadow-sm transition-all" open>
                             <summary class="flex items-center justify-between p-5 cursor-pointer list-none bg-theme-bg/30">
                                 <div class="flex items-center gap-3">
@@ -1247,37 +1261,57 @@ pattern="^[A-Za-z][12][0-9]{8}$"
                 </div>
                 </div>
 
-                <div class="glass-panel p-6 rounded-2xl relative">
-                    <div class="flex items-center gap-2 mb-6 border-b border-theme-sub/20 pb-3">
-                        <span class="text-2xl">📝</span>
-                        <h3 class="font-bold text-theme-text text-lg">法律條款與數位簽署</h3>
-                    </div>
+<div class="glass-panel p-6 rounded-2xl relative">
+    <div class="flex items-center gap-2 mb-6 border-b border-theme-sub/20 pb-3">
+        <span class="text-2xl">📝</span>
+        <h3 class="font-bold text-theme-text text-lg">法律條款與數位簽署</h3>
+    </div>
 
-                    <div class="bg-theme-bg/50 rounded-xl p-4 mb-6 space-y-3 border border-theme-sub/10">
-                        <h4 class="text-xs font-bold text-theme-sub tracking-widest uppercase mb-2">乙方（店家）資訊</h4>
-                        <div class="grid grid-cols-2 gap-y-2 text-sm">
-                            <div><span class="text-theme-sub text-xs block">店家名稱</span><span class="font-bold text-theme-text">大柴小熊寵物美容</span></div>
-                            <div><span class="text-theme-sub text-xs block">負責人</span><span class="font-bold text-theme-text">陳亞琪</span></div>
-                            <div><span class="text-theme-sub text-xs block">特寵業字號</span><span class="font-bold text-theme-text">S1130033 號</span></div>
-                            <div><span class="text-theme-sub text-xs block">統一編號</span><span class="font-bold text-theme-text">94536765</span></div>
-                            <div><span class="text-theme-sub text-xs block">聯絡電話</span><span class="font-bold text-theme-text">0981-681-349</span></div>
-                            <div><span class="text-theme-sub text-xs block">營業時間</span><span class="font-bold text-theme-text">10:00-19:00</span></div>
-                            <div class="col-span-2"><span class="text-theme-sub text-xs block">營業地址</span><span class="font-bold text-theme-text">臺中市北屯區平德路82巷5號</span></div>
-                        </div>
-                    </div>
+    <div class="bg-theme-bg/50 rounded-xl p-4 mb-6 space-y-3 border border-theme-sub/10">
+        <h4 class="text-xs font-bold text-theme-sub tracking-widest uppercase mb-2">乙方（店家）資訊</h4>
+        <div class="grid grid-cols-2 gap-y-2 text-sm">
+            <div><span class="text-theme-sub text-xs block">店家名稱</span><span class="font-bold text-theme-text">大柴小熊寵物美容</span></div>
+            <div><span class="text-theme-sub text-xs block">負責人</span><span class="font-bold text-theme-text">陳亞琪</span></div>
+            <div><span class="text-theme-sub text-xs block">特寵業字號</span><span class="font-bold text-theme-text">S1130033 號</span></div>
+            <div><span class="text-theme-sub text-xs block">統一編號</span><span class="font-bold text-theme-text">94536765</span></div>
+            <div><span class="text-theme-sub text-xs block">聯絡電話</span><span class="font-bold text-theme-text">0981-681-349</span></div>
+            <div><span class="text-theme-sub text-xs block">營業時間</span><span class="font-bold text-theme-text">10:00-19:00</span></div>
+            <div class="col-span-2"><span class="text-theme-sub text-xs block">營業地址</span><span class="font-bold text-theme-text">臺中市北屯區平德路82巷5號</span></div>
+        </div>
+    </div>
 
-                    <div class="mb-6">
-                        <label id="terms-label" class="block text-xs font-bold text-theme-sub mb-2 ml-1">【服務契約條款】</label>
-                        <button type="button" onclick="showTerms()" class="w-full flex items-center justify-between bg-white border border-theme-sub/30 rounded-xl p-4 group hover:border-theme-primary transition">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-theme-primary/10 flex items-center justify-center text-theme-primary">
-                                    <i data-lucide="book-open" class="w-5 h-5"></i>
-                                </div>
-                                <span id="terms-btn-text" class="font-bold text-theme-text">點擊閱讀美容條款</span>
-                            </div>
+    <div class="mb-6">
+        <label id="terms-label" class="block text-xs font-bold text-theme-sub mb-2 ml-1">【服務契約條款】</label>
+        <button type="button" onclick="showTerms()" class="w-full flex items-center justify-between bg-white border border-theme-sub/30 rounded-xl p-4 group hover:border-theme-primary transition">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-theme-primary/10 flex items-center justify-center text-theme-primary">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                </div>
+                <span id="terms-btn-text" class="font-bold text-theme-text">點擊閱讀美容條款</span>
+            </div>
 <span id="terms-status-badge" class="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded">待閱讀</span>
-                        </button>
-                    </div>
+        </button>
+    </div>
+
+    <!-- ✅ 新增：服務規範與影像授權同意條款 -->
+    <div class="mb-6">
+        <label class="block text-xs font-bold text-theme-sub mb-2 ml-1">【服務規範與影像授權】</label>
+        <div class="bg-white/60 border border-theme-sub/20 rounded-xl p-4 space-y-3">
+            <p class="text-[11px] text-theme-sub leading-relaxed">
+                本人已詳閱並同意本店之服務規範。同時同意本店於服務期間拍攝寵物之影像（含照片、影片），並無償授權本店運用於官方社群、作品集展示及店家宣傳行銷之用（涉及飼主個資或隱私處將主動遮蔽）。
+            </p>
+            <div class="flex gap-3">
+                <label class="flex-1 bg-white/60 border border-theme-sub/20 rounded-lg py-2.5 text-center cursor-pointer has-[:checked]:bg-green-50 has-[:checked]:border-green-300 has-[:checked]:text-green-600 transition">
+                    <input type="radio" name="agree_service_policy" value="同意" class="sr-only">
+                    <span class="text-sm font-bold">✅ 同意</span>
+                </label>
+                <label class="flex-1 bg-white/60 border border-theme-sub/20 rounded-lg py-2.5 text-center cursor-pointer has-[:checked]:bg-red-50 has-[:checked]:border-red-300 has-[:checked]:text-red-600 transition">
+                    <input type="radio" name="agree_service_policy" value="不同意" class="sr-only">
+                    <span class="text-sm font-bold">❌ 不同意</span>
+                </label>
+            </div>
+        </div>
+    </div>
 
 <div>
 <div class="flex items-center gap-2 mb-2 ml-1">
@@ -1789,6 +1823,24 @@ async function handleSubmit() {
         if (termsBtn) markError(termsBtn);
         errorMessages.push('閱讀並同意服務條款');
     }
+    
+    // 2-5-1. 服務規範與影像授權同意（必填）
+    const agreePolicy = document.querySelector('input[name="agree_service_policy"]:checked');
+    if (!agreePolicy) {
+        // 標記整個容器為錯誤
+        const container = document.querySelector('input[name="agree_service_policy"]')?.closest('.bg-white\\/60');
+        if (container) {
+            container.classList.add('form-error');
+        }
+        errorMessages.push('請選擇「同意」或「不同意」影像授權');
+    } else {
+        // 如果有選中，清除錯誤
+        const container = document.querySelector('input[name="agree_service_policy"]')?.closest('.bg-white\\/60');
+        if (container) {
+            container.classList.remove('form-error');
+        }
+    }
+    
     if (!signatureDataUrl) {
         const sigBox = document.getElementById('signature-box');
         if (sigBox) markError(sigBox);
@@ -2229,6 +2281,8 @@ function setupRealtimeValidation() {
                         if (!groupContainer) groupContainer = firstEl.closest('.flex');
                         if (!groupContainer) groupContainer = firstEl.closest('.grid');
                         if (!groupContainer) groupContainer = firstEl.closest('.space-y-2') || firstEl.closest('.space-y-4');
+                        // ✅ 特別處理「同意/不同意」的容器
+                        if (!groupContainer) groupContainer = firstEl.closest('.bg-white\\/60');
                         
                         if (groupContainer) {
                             let hasError = false;
@@ -2745,6 +2799,8 @@ function updateBaseRequired() {
     setRequiredByName('dog_social', true);
     setRequiredByName('temperament', true);
     setRequiredByName('history_check', true);
+    // ✅ 服務規範與影像授權（必填）
+    setRequiredByName('agree_service_policy', true);
 
     // 寵物照片一定要
     setRequiredById('pet_photo_file', true);
@@ -3349,7 +3405,7 @@ function showTerms() {
             }, 300);
         }
 /* ====== PWA 更新處理（前台 index）====== */
-const PWA_SW_VERSION = "v18";
+const PWA_SW_VERSION = "v19";
 let newWorker = null;
 let refreshing = false;
 let __indexReg = null;
