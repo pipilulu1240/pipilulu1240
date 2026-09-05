@@ -3278,13 +3278,21 @@ const TERMS_CONTENT = {
                     
                     <p><strong>第一條（契約目的）：</strong><br>本服務為犬貓美容服務，<span class="text-theme-dark">不涉及任何醫療行為</span>。</p>
 
-                    <p><strong>第五條（健康告知）：</strong><br>甲方應誠實告知寵物病史與是否具有攻擊性。<span class="text-red-600 font-black">若因隱瞞導致意外，乙方不負責損害賠償責任</span>；若因隱瞞導致乙方人員傷亡、財損等損失，<span class="text-red-600 font-black underline">乙方將全額向甲方求償</span>。</p>
+                    <p><strong>第二條（毛況免責）：</strong><br>毛髮若嚴重打結、氈化或沾染屎尿，將以安全為由採貼皮剃除。術後長度不均或原發皮膚病顯露屬毛況所致，飼主不得要求整齊或退費。</p>
 
-                    <p><strong>第九條（退費規定）：</strong><br>包月服務申請終止時，預收總額需<span class="text-theme-dark font-bold">扣除（已使用次數 X 單次原價）</span>後退還餘額。</p>
+                    <p><strong>第三條（特殊收費）：</strong><br>嚴重打結、極度髒臭、跳蚤寄生或具攻擊性犬隻，得依工時與難度加收特殊處理費。</p>
 
-                    <p><strong>第十二條（逾時接回）：</strong><br>若於約定時間內未領回，將加收安親費；<span class="text-theme-dark font-bold">若打烊時仍未接回，則視同住宿一晚計費</span>。如經通知<span class="text-red-600 font-black underline">三日內未領回，將依照動保法第29條移交主管機關</span>。</p>
+                    <p><strong>第四條（行為風險與中止服務權利）：</strong><br>犬隻於美容過程中若出現過度緊張、劇烈抗拒或攻擊行為，美容師為維護人犬雙方生命安全，有權隨時終止部分或全部服務（如暫停剪指甲、剃腳底毛等高抗拒項目）。終止服務係基於動物福祉與安全考量，已施作之工時、洗浴與剃毛成本仍須全額計費，不得要求折價或退款。</p>
 
-                    <p><strong>第十五條（履約保障）：</strong><br>預收費用累積金額新台幣一萬元以下，依法免提供履約保障。</p>
+                    <p><strong>第五條（驗收與異議時限）：</strong><br>寵物美容服務屬於「即時完成之客製化勞務」，飼主應於現場接回犬隻時當面確認外觀與身體狀況。犬隻離店後，即視為雙方驗收完成。除有明確不可歸責於飼主之當日急性外傷外，離店超過 24 小時（或接回後）提出之任何外觀異議、造型爭議，本店一概不受理，亦不提供任何形式之退款或免費修整。</p>
+
+                    <p><strong>第六條（健康告知）：</strong><br>甲方應誠實告知寵物病史與是否具有攻擊性。<span class="text-red-600 font-black">若因隱瞞導致意外，乙方不負責損害賠償責任</span>；若因隱瞞導致乙方人員傷亡、財損等損失，<span class="text-red-600 font-black underline">乙方將全額向甲方求償</span>。</p>
+
+                    <p><strong>第七條（退費規定）：</strong><br>包月服務申請終止時，預收總額需<span class="text-theme-dark font-bold">扣除（已使用次數 X 單次原價）</span>後退還餘額。</p>
+
+                    <p><strong>第八條（逾時接回）：</strong><br>若於約定時間內未領回，將加收安親費；<span class="text-theme-dark font-bold">若打烊時仍未接回，則視同住宿一晚計費</span>。如經通知<span class="text-red-600 font-black underline">三日內未領回，將依照動保法第29條移交主管機關</span>。</p>
+
+                    <p><strong>第九條（履約保障）：</strong><br>預收費用累積金額新台幣一萬元以下，依法免提供履約保障。</p>
                     
                     <div class="pt-4 border-t border-theme-sub/20 text-[10px] text-theme-sub space-y-1">
                         <p>※ 其餘細節將依照行政院農委會定型化契約範本辦理。</p>
@@ -3405,7 +3413,7 @@ function showTerms() {
             }, 300);
         }
 /* ====== PWA 更新處理（前台 index）====== */
-const PWA_SW_VERSION = "v19";
+const PWA_SW_VERSION = "v20";
 let newWorker = null;
 let refreshing = false;
 let __indexReg = null;
